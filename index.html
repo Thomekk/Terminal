@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>Terminal Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080c;--panel:#0a0e14;--panel-head:#0d1219;
+  --line:#1a2029;--line-2:#242c38;
+  --text:#c9d1d9;--dim:#6e7681;
+  --green:#7ee787;--green-2:#3fb950;
+  --amber:#fbbf24;--red:#ff7b72;--blue:#58a6ff;
+  --sb:290px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{min-height:100%}
+body{
+  min-height:100vh;min-height:100dvh;
+  background:var(--bg);color:var(--text);
+  font:14px/1.55 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(88,166,255,.08),transparent),
+    radial-gradient(ellipse 60% 50% at 50% 120%,rgba(126,231,135,.05),transparent);
+  background-attachment:fixed;
+}
+button{font:inherit;cursor:pointer;background:none;border:none;color:inherit}
+
+/* ---------- HUD ---------- */
+.app{display:flex;flex-direction:column;width:100%;max-width:880px;margin:0 auto;padding:0 16px;min-height:100vh;min-height:100dvh}
+.hud{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 4px;border-bottom:1px solid var(--line);
+  flex-shrink:0;position:sticky;top:0;z-index:5;
+  background:linear-gradient(to bottom,var(--bg) 75%,transparent);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.menu-btn{
+  width:34px;height:34px;flex-shrink:0;
+  display:grid;place-items:center;border-radius:6px;
+  background:var(--panel);border:1px solid var(--line-2);
+  color:var(--text);font-size:16px;transition:all .15s;
+}
+.menu-btn:hover{border-color:var(--green-2);color:var(--green)}
+.hud-title{font-size:12px;font-weight:700;letter-spacing:.14em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.hud-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.counter{
+  font-size:13px;color:var(--dim);white-space:nowrap;
+  padding:4px 10px;background:var(--panel);
+  border:1px solid var(--line-2);border-radius:6px;
+}
+.counter b{color:var(--text);font-weight:700}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;padding:14px 0;display:flex;flex-direction:column;gap:12px}
+
+/* ---------- PANEL ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.panel-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-head);border-bottom:1px solid var(--line);min-height:36px}
+.panel-dots{display:flex;gap:5px;flex-shrink:0}
+.panel-dots i{width:10px;height:10px;border-radius:50%;display:block}
+.panel-dots i:nth-child(1){background:#ff5f57}
+.panel-dots i:nth-child(2){background:#febc2e}
+.panel-dots i:nth-child(3){background:#28c840}
+.panel-title{font-size:11px;color:var(--dim);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-tag{
+  margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;
+  background:rgba(88,166,255,.1);color:var(--blue);
+  border:1px solid rgba(88,166,255,.25);flex-shrink:0;
+  white-space:nowrap;
+}
+.panel-body{padding:14px 16px}
+
+/* Бейдж «принято» в шапке панели */
+.badge{
+  font-size:11px;padding:2px 8px;border-radius:4px;white-space:nowrap;
+  background:rgba(126,231,135,.12);color:var(--green);
+  border:1px solid rgba(126,231,135,.35);
+  opacity:0;transform:translateY(-3px);
+  transition:opacity .25s,transform .25s;
+  pointer-events:none;margin-left:6px;flex-shrink:0;
+}
+.badge.show{opacity:1;transform:none;animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* ---------- INFO ---------- */
+.info-title{font-size:15px;color:var(--green);margin-bottom:10px;font-weight:700}
+.info-text p{margin-bottom:8px}
+.info-text p:last-child{margin-bottom:0}
+.info-text code{background:rgba(126,231,135,.1);color:var(--green);padding:1px 6px;border-radius:4px;font-size:13px;border:1px solid rgba(126,231,135,.15)}
+.info-text i{color:var(--dim)}
+.info-text b{color:var(--amber)}
+.info-text ul{padding-left:20px;margin:8px 0}
+
+/* ---------- TASK ---------- */
+.task-line{display:flex;gap:10px;align-items:flex-start}
+.task-arrow{color:var(--amber);flex-shrink:0}
+.task-line b{color:var(--amber)}
+.hint-line{
+  display:none;margin-top:10px;padding:8px 12px;
+  background:rgba(251,191,36,.08);border-left:2px solid var(--amber);
+  border-radius:4px;font-size:12px;color:var(--amber);
+}
+.hint-line.show{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* ---------- TERMINAL ---------- */
+.term-panel{transition:box-shadow .3s,border-color .3s}
+.term-panel.success{border-color:rgba(126,231,135,.4);box-shadow:0 0 24px rgba(126,231,135,.15),0 4px 20px rgba(0,0,0,.3)}
+.term-body{
+  padding:14px 16px;min-height:150px;max-height:340px;
+  overflow-y:auto;font-size:13.5px;line-height:1.7;
+  scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;
+  scroll-margin-top:80px;scroll-margin-bottom:220px;
+}
+.term-body::-webkit-scrollbar{width:6px}
+.term-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+.term-log{display:flex;flex-direction:column;gap:2px}
+.term-row{display:flex;gap:8px;flex-wrap:wrap;word-break:break-all}
+.term-row .cmd{color:var(--text)}
+.prompt{color:var(--green);font-weight:500;white-space:nowrap}
+.prompt-path{color:var(--blue)}
+.prompt-sign{color:var(--text);margin-left:2px}
+.term-out{color:var(--dim);white-space:pre-wrap;word-break:break-word}
+.term-err{margin-top:6px;padding:6px 10px;border-radius:4px;animation:slideIn .3s ease;font-size:13px;color:var(--red);background:rgba(255,123,114,.08);border-left:2px solid var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+
+.term-input-line{display:flex;gap:8px;align-items:center;margin-top:4px}
+.term-input-line input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font:inherit;padding:0;
+  caret-color:var(--green);min-width:0;
+}
+.term-input-line input:disabled{color:var(--dim);caret-color:transparent}
+
+/* ---------- CODE EDITOR ---------- */
+.code-body{padding:0}
+.code-body textarea{
+  width:100%;min-height:150px;max-height:340px;
+  background:transparent;border:none;outline:none;resize:vertical;
+  color:var(--text);font:13.5px/1.7 'JetBrains Mono',monospace;
+  padding:14px 16px;caret-color:var(--green);
+  scroll-margin-top:80px;scroll-margin-bottom:220px;
+}
+.code-body textarea:disabled{color:var(--dim)}
+.code-actions{display:flex;gap:8px;padding:0 16px 14px;align-items:center}
+.code-out{
+  padding:0 16px 14px;color:var(--dim);
+  white-space:pre-wrap;word-break:break-word;font-size:13px;
+}
+.code-out:empty{display:none}
+.code-out::before{
+  content:'▸ вывод:';display:block;color:var(--blue);
+  font-size:11px;margin-bottom:4px;letter-spacing:.05em;
+}
+
+/* ---------- QUIZ ---------- */
+.quiz-question{font-size:14px;color:var(--text);margin-bottom:12px;font-weight:500;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-option{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(255,255,255,.02);
+  border:1px solid var(--line-2);border-radius:6px;
+  color:var(--text);font:inherit;font-size:13px;
+  text-align:left;width:100%;transition:all .15s;
+}
+.quiz-option:hover:not(:disabled){border-color:var(--blue);background:rgba(88,166,255,.06)}
+.quiz-option:disabled{cursor:default;opacity:.55}
+.quiz-option .key{flex-shrink:0;width:22px;height:22px;display:grid;place-items:center;border-radius:4px;background:var(--line-2);font-size:11px;color:var(--dim);transition:.2s}
+.quiz-option .label{flex:1;line-height:1.4}
+.quiz-option.correct{border-color:var(--green-2);background:rgba(126,231,135,.08);opacity:1}
+.quiz-option.correct .key{background:var(--green-2);color:#000}
+.quiz-option.wrong{border-color:var(--red);background:rgba(255,123,114,.06);opacity:1}
+.quiz-option.wrong .key{background:var(--red);color:#000}
+
+/* ---------- SUCCESS BLOCK ---------- */
+.success-block{
+  display:none;background:var(--panel);
+  border:1px solid rgba(126,231,135,.4);border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.3),0 0 24px rgba(126,231,135,.15);
+}
+.success-block.show{display:block;animation:slideDown .35s ease-out}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.success-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-head);border-bottom:1px solid rgba(126,231,135,.2)}
+.success-head .panel-title{color:var(--green)}
+.success-body{padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.success-icon{font-size:36px;line-height:1;flex-shrink:0;animation:pop .5s ease-out}
+.success-text{flex:1;min-width:180px}
+.success-text h2{color:var(--green);font-size:15px;margin-bottom:4px;font-weight:700}
+.success-text p{color:var(--dim);font-size:13px;line-height:1.5}
+.success-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+
+/* ---------- FOOTER ---------- */
+.footer{
+  flex-shrink:0;padding:10px 0 16px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:10px;background:var(--bg);
+  position:sticky;bottom:0;z-index:4;
+}
+.status{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--panel);
+  border:1px solid var(--line);border-radius:6px;
+  font-size:12px;min-height:36px;transition:all .2s;
+}
+.status.ok{border-color:rgba(126,231,135,.3);background:rgba(126,231,135,.05)}
+.status.err{border-color:rgba(255,123,114,.3);background:rgba(255,123,114,.05)}
+.status-icon{color:var(--dim);font-weight:700}
+.status-text{color:var(--dim)}
+.status.ok .status-icon,.status.ok .status-text{color:var(--green)}
+.status.err .status-icon,.status.err .status-text{color:var(--red)}
+
+.nav{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;background:var(--panel);
+  border:1px solid var(--line-2);border-radius:6px;
+  color:var(--text);font:inherit;font-size:13px;transition:all .15s;
+}
+.btn:hover:not(:disabled){border-color:var(--green-2);color:var(--green)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-primary{background:rgba(126,231,135,.1);border-color:var(--green-2);color:var(--green)}
+.btn-primary:hover:not(:disabled){background:rgba(126,231,135,.18);box-shadow:0 0 16px rgba(126,231,135,.25)}
+.btn-primary:not(:disabled){animation:pulseGlow 2s infinite}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 12px rgba(126,231,135,.2)}50%{box-shadow:0 0 20px rgba(126,231,135,.4)}}
+
+/* ---------- OVERLAY ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(6,8,12,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:grid;place-items:center;z-index:50;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay-card{
+  background:var(--panel);border:1px solid var(--line-2);
+  border-radius:12px;padding:32px 40px;text-align:center;
+  transform:translateY(10px);transition:transform .3s;
+  max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.overlay.show .overlay-card{transform:none}
+.overlay-icon{font-size:48px;margin-bottom:12px;line-height:1}
+.overlay-card h2{color:var(--green);margin-bottom:8px;font-size:20px}
+.overlay-card p{color:var(--dim);margin-bottom:20px;font-size:13px;line-height:1.6}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  position:fixed;inset:0 auto 0 0;width:var(--sb);max-width:88vw;
+  background:var(--panel);border-right:1px solid var(--line-2);
+  z-index:60;display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .25s ease;
+  box-shadow:8px 0 40px rgba(0,0,0,.5);
+}
+.sidebar.open{transform:translateX(0)}
+.sb-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sb-head b{font-size:12px;letter-spacing:.14em;color:var(--green);flex:1}
+.sb-close{width:30px;height:30px;border-radius:6px;display:grid;place-items:center;color:var(--dim);font-size:16px}
+.sb-close:hover{color:var(--red)}
+.sb-list{flex:1;overflow-y:auto;padding:6px 0;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.sb-list::-webkit-scrollbar{width:5px}
+.sb-list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+
+.sb-course{padding:2px 0;border-bottom:1px solid transparent}
+.sb-course-title{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;
+  width:100%;text-align:left;transition:background .15s;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);cursor:pointer;
+}
+.sb-course-title:hover{background:rgba(255,255,255,.02);color:var(--text)}
+.sb-course-title .chev{
+  width:12px;flex-shrink:0;color:var(--dim);
+  transition:transform .2s;font-size:10px;
+}
+.sb-course.open .sb-course-title .chev{transform:rotate(90deg)}
+.sb-course-title .ic{
+  width:22px;height:22px;border-radius:4px;
+  display:grid;place-items:center;font-size:10px;
+  background:rgba(88,166,255,.1);color:var(--blue);
+  border:1px solid rgba(88,166,255,.2);font-weight:700;
+  flex-shrink:0;
+}
+.sb-course.active .sb-course-title .ic{background:rgba(126,231,135,.15);color:var(--green);border-color:rgba(126,231,135,.3)}
+.sb-course-title .ttl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-course.active .sb-course-title .ttl{color:var(--text)}
+.sb-course-title .cnt{
+  font-size:10px;color:var(--dim);padding:1px 6px;border-radius:8px;
+  background:rgba(255,255,255,.04);flex-shrink:0;
+}
+.sb-course.open .sb-course-title .cnt{color:var(--green)}
+
+.sb-course-lessons{display:none;padding:4px 0 6px}
+.sb-course.open .sb-course-lessons{display:block;animation:fadeIn .2s ease}
+
+.sb-lesson{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px 7px 30px;font-size:12.5px;color:var(--dim);
+  cursor:pointer;transition:all .12s;width:100%;text-align:left;
+  border-left:2px solid transparent;
+}
+.sb-lesson:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.sb-lesson.active{color:var(--green);border-left-color:var(--green);background:rgba(126,231,135,.05)}
+.sb-lesson.done::before{content:'✓';color:var(--green-2);font-size:11px;width:12px;flex-shrink:0}
+.sb-lesson:not(.done)::before{content:'○';color:var(--line-2);font-size:11px;width:12px;flex-shrink:0}
+.sb-lesson .num{color:var(--dim);font-size:10px;flex-shrink:0}
+.sb-lesson .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+
+/* ---------- SIDEBAR FOOTER: ссылки, почта, очистка ---------- */
+.sb-foot{border-top:1px solid var(--line);padding:10px 12px 12px;background:var(--panel-head)}
+.sb-links{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.sb-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:6px;color:var(--text);
+  text-decoration:none;transition:background .15s;
+  border:1px solid transparent;
+}
+.sb-link:hover{background:rgba(88,166,255,.06);border-color:rgba(88,166,255,.15)}
+.sb-link .ic{
+  width:26px;height:26px;border-radius:6px;flex-shrink:0;
+  display:grid;place-items:center;font-size:12px;
+  background:rgba(88,166,255,.1);color:var(--blue);
+  border:1px solid rgba(88,166,255,.2);
+}
+.sb-link .tx{display:flex;flex-direction:column;min-width:0}
+.sb-link .tx b{font-size:12px;font-weight:600;color:var(--text)}
+.sb-link .tx i{font-style:normal;font-size:10.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.sb-danger{
+  width:100%;padding:9px;margin-top:4px;
+  background:rgba(255,123,114,.06);
+  border:1px solid rgba(255,123,114,.25);
+  color:var(--red);border-radius:6px;
+  font-size:11.5px;letter-spacing:.03em;
+  transition:all .15s;text-align:center;
+}
+.sb-danger:hover{background:rgba(255,123,114,.14);border-color:rgba(255,123,114,.5)}
+.sb-danger.armed{
+  background:rgba(255,123,114,.2);border-color:var(--red);
+  animation:armPulse .8s infinite;color:#fff;
+}
+@keyframes armPulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55;opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.show{opacity:1;pointer-events:auto}
+
+/* ---------- АДАПТИВ ---------- */
+@media (max-width:600px){
+  .hud{padding:10px 2px}
+  .hud-title{font-size:11px}
+  .counter{font-size:12px;padding:3px 8px}
+  .panel-body{padding:12px 14px}
+  .term-body,.code-body textarea{padding:12px 14px;font-size:13px;max-height:280px}
+  .info-title{font-size:14px}
+  .btn{padding:8px 12px;font-size:12px}
+  .overlay-card{padding:24px 20px}
+  .success-icon{font-size:30px}
+  .success-body{padding:12px 14px;gap:10px}
+  .success-actions{width:100%}
+  .success-actions .btn{flex:1}
+}
+@media (max-width:380px){
+  .nav .btn{flex:1 1 auto;min-width:0;padding:8px 8px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="hud">
+    <button class="menu-btn" id="menuBtn" aria-label="Меню">≡</button>
+    <span class="hud-title" id="hudTitle">КВЕСТ</span>
+    <div class="hud-right">
+      <div class="counter"><b id="counterCur">1</b>/<span id="counterTotal">8</span></div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <section class="panel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="infoTitle">Информация</span>
+      </div>
+      <div class="panel-body" id="infoBody"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="taskTitle">Задание</span>
+      </div>
+      <div class="panel-body">
+        <div class="task-line">
+          <span class="task-arrow">▸</span>
+          <span id="taskText"></span>
+        </div>
+        <div class="hint-line" id="hintLine"></div>
+      </div>
+    </section>
+
+    <!-- Терминал -->
+    <section class="panel term-panel" id="termPanel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="termTitle">Терминал</span>
+        <span class="badge" id="termBadge"></span>
+        <span class="panel-tag" id="cmdTag">ls</span>
+      </div>
+      <div class="panel-body term-body" id="termBody">
+        <div class="term-log" id="termLog"></div>
+        <div class="term-input-line">
+          <span class="prompt">user@quest<span class="prompt-path">:~/quest</span><span class="prompt-sign">$</span></span>
+          <input id="termInput" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off">
+        </div>
+      </div>
+    </section>
+
+    <!-- Редактор кода -->
+    <section class="panel" id="codePanel" style="display:none">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="codeTitle">Код</span>
+        <span class="badge" id="codeBadge"></span>
+        <span class="panel-tag" id="langTag">js</span>
+      </div>
+      <div class="panel-body code-body">
+        <textarea id="codeArea" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off"></textarea>
+        <div class="code-actions">
+          <button class="btn btn-primary" id="runBtn">▶ Запустить</button>
+        </div>
+        <div class="code-out" id="codeOut"></div>
+      </div>
+    </section>
+
+    <!-- Викторина -->
+    <section class="panel" id="quizPanel" style="display:none">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="quizTitle">Викторина</span>
+        <span class="badge" id="quizBadge"></span>
+      </div>
+      <div class="panel-body">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+      </div>
+    </section>
+
+    <!-- Успех -->
+    <section class="success-block" id="successBlock">
+      <div class="success-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title" id="successTitle">Результат</span>
+      </div>
+      <div class="success-body">
+        <div class="success-icon" id="sIcon">✓</div>
+        <div class="success-text">
+          <h2 id="sTitle">Правильно!</h2>
+          <p id="sMessage">Отличная работа.</p>
+        </div>
+        <div class="success-actions">
+          <button class="btn" id="sRetry">↻ Повторить</button>
+          <button class="btn btn-primary" id="sContinue">Дальше →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="status" id="status">
+      <span class="status-icon" id="statusIcon">›</span>
+      <span class="status-text" id="statusText">Введи команду и нажми Enter</span>
+    </div>
+    <div class="nav">
+      <button class="btn" id="prevBtn">← Назад</button>
+      <button class="btn" id="resetBtn">↻ Сброс</button>
+      <button class="btn btn-primary" id="nextBtn" disabled>Далее →</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Боковая панель -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <b>КУРСЫ</b>
+    <button class="sb-close" id="sbClose" aria-label="Закрыть">✕</button>
+  </div>
+  <div class="sb-list" id="sbList"></div>
+
+  <div class="sb-foot">
+    <!-- ▼ ЗДЕСЬ ДОБАВЛЯЙ СВОИ ССЫЛКИ ▼
+         Пример структуры:
+         <a class="sb-link" href="URL" target="_blank" rel="noopener">
+           <span class="ic">🔗</span>
+           <span class="tx"><b>Название</b><i>Короткое описание ссылки</i></span>
+         </a>
+    -->
+    <div class="sb-links">
+      <a class="sb-link" href="https://developer.mozilla.org/ru/" target="_blank" rel="noopener">
+        <span class="ic">📚</span>
+        <span class="tx"><b>MDN Web Docs</b><i>Справочник по веб-технологиям</i></span>
+      </a>
+      <a class="sb-link" href="mailto:tomvazovsky@gmail.com">
+        <span class="ic">✉</span>
+        <span class="tx"><b>Написать мне</b><i>tomvazovsky@gmail.com</i></span>
+      </a>
+    </div>
+    <!-- ▲ ЗДЕСЬ ЗАКАНЧИВАЮТСЯ ССЫЛКИ ▲ -->
+
+    <button class="sb-danger" id="sbClear" type="button">🗑 Очистить все данные</button>
+  </div>
+</aside>
+<div class="backdrop" id="backdrop"></div>
+
+<!-- Финальный оверлей -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">🏆</div>
+    <h2 id="finalTitle">Курс пройден!</h2>
+    <p id="finalText">Отличная работа. Пора двигаться дальше.</p>
+    <button class="btn btn-primary" id="restartBtn">Пройти заново</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   APP — конфигурация приложения и все курсы.
+
+   КАЖДЫЙ УРОК ПОЛУЧАЕТ УНИКАЛЬНЫЙ ID:
+     • если поле id задано вручную — используется оно;
+     • иначе — автоматически из course.id + слаг(название).
+   Прогресс в localStorage хранится ПО ID, а не по индексу, поэтому
+   можно свободно вставлять новые уроки в середину массива.
+
+   СТРУКТУРА КУРСА:
+   {
+     id:    'terminal',
+     title: 'Терминал',
+     icon:  '>_',
+     labels:{ ... },                        // опционально
+     lessons: [ { id:'ls-1', type:'terminal', ... }, ... ]
+   }
+
+   ТИПЫ УРОКОВ:
+     'terminal' — ввод команды в терминал.
+     'code'     — редактор кода + запуск (js исполняется реально).
+     'quiz'     — выбор ответа.
+
+   ОБЩИЕ ПОЛЯ УРОКА:
+     id, title, info, task, hint,
+     labels: { info, task, term, quiz, code, success, badge }
+     success: {icon,title,message,continueText,retryText}
+
+   'terminal': expect:{exact|regex|oneOf|startsWith}, output
+   'code':     lang:'js'|'py', starter:'...', expect:{...},
+               run:true|false, output:'...'
+   'quiz':     question, options, correct
+   ================================================================ */
+const APP = {
+  title: 'КВЕСТ',
+  storageKey: 'quest-v3',
+  defaultLabels: {
+    info:'Информация', task:'Задание', term:'Терминал',
+    quiz:'Викторина', code:'Код', success:'Результат',
+    badge:'✓ Принято'
+  },
+  courses: [
+
+    /* ============ КУРС 1: ТЕРМИНАЛ ============ */
+    {
+      id: 'terminal',
+      title: 'Терминал',
+      icon: '>_',
+lessons: [
+
+/* ═══════════════════════════════════════════════════════════
+   ВВЕДЕНИЕ В КУРС — «Основы работы с терминалом»
+   ═══════════════════════════════════════════════════════════ */
+
+{
+  id: 'term-intro-1', type: 'quiz', title: '🎬 Что такое терминал?',
+  info: `
+    <p>Добро пожаловать в <b>Terminal Quest</b>! 🚀</p>
+    <p><b>Терминал</b> — это текстовое окно, через которое ты <b>разговариваешь с компьютером словами</b>, а не мышкой.</p>
+    <p>Вместо кликов по иконкам ты пишешь команды: <code>ls</code>, <code>cd</code>, <code>pwd</code>. Компьютер отвечает текстом.</p>
+    <p>Сначала кажется, что это сложнее мышки. Но на деле — <b>быстрее, точнее и мощнее</b>. Одна строка может сделать работу сотни кликов.</p>
+    <p>Так работают программисты, системные администраторы и хакеры по всему миру. 😎</p>
+  `,
+  task: 'Проверим, как ты понял. Выбери правильный ответ.',
+  question: 'Что такое <b>терминал</b>?',
+  options: [
+    'Программа для просмотра видео',
+    'Текстовое окно, где ты пишешь команды для компьютера',
+    'Игра, где нужно кликать мышкой',
+    'Место, где хранятся все твои файлы'
+  ],
+  correct: 1,
+  hint: 'Терминал — там, где ты вводишь текст, а не кликаешь.',
+  success: { icon:'🎬', title:'Ты понял!', message:'Терминал — это диалог с компьютером на языке команд.', continueText:'К уроку о Linux →' }
+},
+
+{
+  id: 'term-intro-2', type: 'quiz', title: '🐧 Что такое Linux?',
+  info: `
+    <p><b>Linux</b> — это операционная система. Такая же, как Windows или macOS, но <b>бесплатная, открытая и живёт на серверах по всему миру</b>.</p>
+    <p>Почти все сайты, приложения и суперкомпьютеры работают на Linux. Даже Android построен на нём!</p>
+    <p>У Linux много «версий» — их называют <b>дистрибутивами</b>: Ubuntu, Debian, Fedora, Arch. У всех внутри <b>одинаковый терминал</b>, поэтому команды ты выучишь один раз — и они работают везде.</p>
+    <p>В нашем квесте мы будем играть на виртуальном Linux-сервере. Ничего не сломаешь — экспериментируй смело! 🧪</p>
+  `,
+  task: 'Выбери правильный ответ.',
+  question: 'Что такое <b>Linux</b>?',
+  options: [
+    'Игра для телефона',
+    'Операционная система с открытым кодом',
+    'Компания, которая делает компьютеры',
+    'Язык программирования'
+  ],
+  correct: 1,
+  hint: 'Linux — это ОС, как Windows или macOS.',
+  success: { icon:'🐧', title:'Точно!', message:'Linux — открытая ОС, на которой стоит весь интернет.', continueText:'К устройству команды →' }
+},
+
+{
+  id: 'term-intro-3', type: 'quiz', title: '🧩 Как устроена команда',
+  info: `
+    <p>Команда в терминале — это как <b>предложение из трёх частей</b>:</p>
+    <ul>
+      <li><b>Имя команды</b> — что делать. Например, <code>ls</code> (показать список).</li>
+      <li><b>Флаги</b> — как именно делать. Пишутся с дефисом: <code>-a</code>, <code>-l</code>, <code>-h</code>.</li>
+      <li><b>Аргументы</b> — с чем работать. Имя файла или папки: <code>Documents</code>, <code>notes.txt</code>.</li>
+    </ul>
+    <p>Пример: <code>ls -l Documents</code> — «покажи <b>подробно</b> (<code>-l</code>) папку <b>Documents</b>».</p>
+    <p>Порядок такой: <b>команда → флаги → аргументы</b>. Запомнишь — будешь читать любую команду как фразу. 📖</p>
+  `,
+  task: 'Проверим! Выбери правильный ответ.',
+  question: 'В команде <b>ls -la Documents</b> что означает <b>-la</b>?',
+  options: [
+    'Имя файла',
+    'Флаги — как именно выполнить команду',
+    'Пароль пользователя',
+    'Название программы'
+  ],
+  correct: 1,
+  hint: 'Дефис в начале всегда означает флаг.',
+  success: { icon:'🧩', title:'Разобрался!', message:'Команда + флаги + аргументы — структура любой команды.', continueText:'К приглашению →' }
+},
+
+{
+  id: 'term-intro-4', type: 'quiz', title: '💬 Приглашение и команды',
+  info: `
+    <p>Когда ты открываешь терминал, ты видишь такую строку:</p>
+    <p><code>user@quest:~/quest$</code></p>
+    <p>Это <b>приглашение</b> (prompt). Оно говорит:</p>
+    <ul>
+      <li><b>user</b> — кто ты (имя пользователя);</li>
+      <li><b>quest</b> — на какой машине сидишь (hostname);</li>
+      <li><b>~/quest</b> — где ты сейчас находишься (текущая папка);</li>
+      <li><b>$</b> — символ, после которого ты пишешь команду.</li>
+    </ul>
+    <p><b>Как запустить команду?</b> Набери текст и нажми <b>Enter</b>. Всё! Компьютер ответит мгновенно. ⌨️</p>
+    <p>Если что-то не получилось — не страшно. В терминале никогда не поздно нажать <b>Ctrl+C</b> и начать заново.</p>
+  `,
+  task: 'Финальная проверка перед первой командой.',
+  question: 'Как <b>запустить</b> написанную команду в терминале?',
+  options: [
+    'Кликнуть по ней мышкой',
+    'Нажать Enter',
+    'Подождать 10 секунд',
+    'Сказать «пожалуйста»'
+  ],
+  correct: 1,
+  hint: 'Команды в терминале запускает клавиша ввода.',
+  success: { icon:'💬', title:'Готов к первой команде!', message:'Теперь ты знаешь, что такое терминал, Linux, команда и приглашение. Поехали! 🚀', continueText:'К ls →' }
+},
+  /* ═══════ ls — от простого к сложному ═════ */
+  {
+    id: 'term-ls-1', type: 'terminal', title: 'ls — что в папке?', cmd: 'ls',
+    info: `<p><code>ls</code> (от <i>list</i>) — выводит список файлов и папок в текущем каталоге.</p>
+           <p>Без аргументов показывает всё, кроме скрытых файлов.</p>`,
+    task: 'Выведите содержимое текущей папки.',
+    hint: 'Команда из двух букв: l и s.',
+    expect: { exact: 'ls' },
+    output: ['Documents/  Downloads/  Pictures/', 'readme.txt  notes.txt  script.sh'],
+    success: { icon:'📂', title:'Готово!', message:'ls показал обычные файлы и папки.', continueText:'К ls -a →' }
+  },
+  {
+    id: 'term-ls-a', type: 'terminal', title: 'ls -a — показать скрытое', cmd: 'ls -a',
+    info: `<p>Флаг <code>-a</code> (all) показывает <b>все</b> файлы, включая скрытые.</p>
+           <p>Скрытые файлы начинаются с точки: <code>.bashrc</code>, <code>.gitignore</code>.</p>
+           <p>Также показываются <code>.</code> (текущая) и <code>..</code> (родительская) папки.</p>`,
+    task: 'Покажите все файлы, включая скрытые.',
+    hint: 'ls -a — пробел и дефис обязательны.',
+    expect: { exact: 'ls -a' },
+    output: '.  ..  .bashrc  .gitignore  Documents/  readme.txt',
+    success: { icon:'👁️', title:'Скрытое видно!', message:'Точка в начале имени делает файл скрытым.', continueText:'К ls -A →' }
+  },
+  {
+    id: 'term-ls-A', type: 'terminal', title: 'ls -A — всё, кроме . и ..', cmd: 'ls -A',
+    info: `<p>Флаг <code>-A</code> (почти все) — то же, что <code>-a</code>, но <b>убирает</b> из вывода <code>.</code> и <code>..</code>.</p>
+           <p>Часто удобнее: меньше лишнего в списке.</p>`,
+    task: 'Покажите все файлы, но без точек . и ..',
+    hint: 'Заглавная A, не путай с маленькой.',
+    expect: { exact: 'ls -A' },
+    output: '.bashrc  .gitignore  Documents/  readme.txt',
+    success: { icon:'🧹', title:'Чисто!', message:'-A удобно, когда не нужны «.» и «..».', continueText:'К ls -l →' }
+  },
+  {
+    id: 'term-ls-l', type: 'terminal', title: 'ls -l — подробный список', cmd: 'ls -l',
+    info: `<p>Флаг <code>-l</code> (long) показывает <b>подробный</b> список:</p>
+           <ul>
+             <li>права доступа (<code>drwxr-xr-x</code>)</li>
+             <li>владелец и группа</li>
+             <li>размер в байтах</li>
+             <li>дата и время</li>
+             <li>имя файла</li>
+           </ul>`,
+    task: 'Покажите подробный список файлов.',
+    hint: 'Буква l (эл), не путай с цифрой 1.',
+    expect: { exact: 'ls -l' },
+    output: [
+      '-rw-r--r-- 1 user user  220 Jan 15 10:24 readme.txt',
+      'drwxr-xr-x 2 user user 4096 Jan 14 09:10 Documents/'
+    ],
+    success: { icon:'📋', title:'Длинный формат', message:'Так выглядит классический вывод ls -l.', continueText:'К ls -la →' }
+  },
+  {
+    id: 'term-ls-la', type: 'terminal', title: 'ls -la — флаги вместе', cmd: 'ls -la',
+    info: `<p>Флаги можно <b>объединять</b>: <code>ls -la</code> = <code>ls -l -a</code>.</p>
+           <p>Один дефис и подряд идущие буквы — обычная практика в UNIX.</p>`,
+    task: 'Покажите подробный список, включая скрытые файлы.',
+    hint: 'ls -la или ls -al — оба работают.',
+    expect: { oneOf: ['ls -la', 'ls -al'] },
+    output: [
+      'drwxr-xr-x 5 user user 4096 Jan 15 10:24 .',
+      'drwxr-xr-x 3 user user 4096 Jan 10 08:00 ..',
+      '-rw-r--r-- 1 user user  220 Jan 15 10:24 .bashrc',
+      '-rw-r--r-- 1 user user  220 Jan 15 10:24 readme.txt'
+    ],
+    success: { icon:'🔗', title:'Объединено!', message:'Флаги объединяются через одну строку.', continueText:'К ls -lh →' }
+  },
+  {
+    id: 'term-ls-lh', type: 'terminal', title: 'ls -lh — размер по-человечески', cmd: 'ls -lh',
+    info: `<p>Флаг <code>-h</code> (human) делает размеры <b>читаемыми</b>: <code>1K</code>, <code>2M</code>, <code>1G</code> вместо байтов.</p>
+           <p>Работает только вместе с <code>-l</code>.</p>`,
+    task: 'Покажите подробный список с размерами в K/M/G.',
+    hint: 'ls -lh — маленькая буква h.',
+    expect: { oneOf: ['ls -lh', 'ls -hl'] },
+    output: [
+      '-rw-r--r-- 1 user user  220B Jan 15 10:24 readme.txt',
+      '-rw-r--r-- 1 user user  1.2M Jan 14 18:02 video.mp4',
+      'drwxr-xr-x 2 user user  4.0K Jan 14 09:10 Documents/'
+    ],
+    success: { icon:'📏', title:'Читаемые размеры', message:'h = human, для людей.', continueText:'К ls -R →' }
+  },
+  {
+    id: 'term-ls-R', type: 'terminal', title: 'ls -R — рекурсивно', cmd: 'ls -R',
+    info: `<p>Флаг <code>-R</code> (recursive) показывает содержимое <b>всех</b> вложенных папок.</p>
+           <p>Удобно, когда нужно увидеть дерево целиком. На больших папках может быть очень длинным.</p>`,
+    task: 'Покажите содержимое папки и всех вложенных папок.',
+    hint: 'Заглавная R.',
+    expect: { exact: 'ls -R' },
+    output: [
+      '.:',
+      'Documents/  readme.txt',
+      '',
+      './Documents:',
+      'report.pdf  notes.txt'
+    ],
+    success: { icon:'🌳', title:'Рекурсия!', message:'ls -R обходит все вложенные папки.', continueText:'К ls -t →' }
+  },
+  {
+    id: 'term-ls-t', type: 'terminal', title: 'ls -t — по времени', cmd: 'ls -t',
+    info: `<p>Флаг <code>-t</code> (time) сортирует файлы по <b>времени изменения</b> — сначала свежие.</p>
+           <p>Часто комбинируют: <code>ls -lt</code> — подробно и свежие сверху.</p>`,
+    task: 'Покажите файлы, отсортированные по времени изменения.',
+    hint: 'ls -t или ls -lt.',
+    expect: { oneOf: ['ls -t', 'ls -lt', 'ls -tl'] },
+    output: [
+      'notes.txt         (сейчас)',
+      'readme.txt        (вчера)',
+      'Documents/        (неделю назад)'
+    ],
+    success: { icon:'⏱️', title:'Свежие сверху!', message:'-t полезен, когда ищешь недавно изменённый файл.', continueText:'К викторине →' }
+  },
+  {
+    id: 'term-ls-quiz', type: 'quiz', title: 'Проверка: флаги ls',
+    info: `<p>Небольшая проверка по флагам <code>ls</code>.</p>`,
+    task: 'Выбери правильный вариант.',
+    question: 'Что делает <b>ls -a</b>?',
+    options: [
+      'Показывает только папки',
+      'Показывает все файлы, включая скрытые',
+      'Сортирует по имени',
+      'Удаляет файлы'
+    ],
+    correct: 1,
+    hint: '-a = all (всё).',
+    success: { icon:'🧠', title:'Верно!', message:'-a = all, показывает скрытые файлы.', continueText:'Дальше →' }
+  },
+
+  /* ═══════════════ pwd ═══════════════ */
+
+  {
+    id: 'term-pwd', type: 'terminal', title: 'pwd — где я нахожусь?', cmd: 'pwd',
+    info: `<p>Команда <code>pwd</code> (print working directory) показывает <b>полный путь</b> к текущей папке.</p>
+           <p>Полезно, когда «потерялся» в файловой системе.</p>`,
+    task: 'Узнайте полный путь к текущей папке.',
+    hint: 'Три буквы: pwd.',
+    expect: { exact: 'pwd' },
+    output: '/home/user/quest',
+    success: { icon:'📍', title:'Путь найден', message:'Ты в /home/user/quest.', continueText:'К cd →' }
+  },
+
+  /* ═══════════════ cd ═══════════════ */
+
+  {
+    id: 'term-cd-1', type: 'terminal', title: 'cd — переход в папку', cmd: 'cd',
+    info: `<p><code>cd</code> (change directory) — переход в другую папку.</p>
+           <p>Синтаксис: <code>cd имя_папки</code>. Если команда сработала — она ничего не выводит.</p>`,
+    task: 'Перейдите в папку <b>Documents</b>.',
+    hint: 'cd Documents — пробел и имя папки.',
+    expect: { regex: /^cd\s+Documents$/i },
+    output: 'user@quest:~/quest/Documents$',
+    success: { icon:'🚪', title:'Ты внутри Documents', message:'cd молчит при успехе — это норма.', continueText:'К cd .. →' }
+  },
+  {
+    id: 'term-cd-dotdot', type: 'terminal', title: 'cd .. — на уровень выше', cmd: 'cd ..',
+    info: `<p><code>..</code> — это «родительская папка» (на уровень выше).</p>
+           <p>Так же <code>.</code> — это текущая папка.</p>
+           <p><b>Важно:</b> между <code>cd</code> и <code>..</code> нужен пробел.</p>`,
+    task: 'Поднимитесь на уровень выше.',
+    hint: 'cd .. — пробел и две точки.',
+    expect: { regex: /^cd\s+\.\.$/ },
+    output: 'user@quest:~/quest$',
+    success: { icon:'⬆️', title:'Выше!', message:'.. всегда ведёт к родительской папке.', continueText:'К cd ~ →' }
+  },
+  {
+    id: 'term-cd-tilde', type: 'terminal', title: 'cd ~ — в домашнюю папку', cmd: 'cd ~',
+    info: `<p><code>~</code> (тильда) — это <b>домашняя папка</b> пользователя.</p>
+           <p><code>cd ~</code> и просто <code>cd</code> без аргументов работают одинаково — возвращают домой.</p>`,
+    task: 'Перейдите в домашнюю папку через тильду.',
+    hint: 'cd ~ — тильда находится над Tab (в ENG раскладке).',
+    expect: { regex: /^cd\s+~$/ },
+    output: 'user@home:~$',
+    success: { icon:'🏠', title:'Дома!', message:'~ = твоя домашняя папка.', continueText:'К cd - →' }
+  },
+  {
+    id: 'term-cd-dash', type: 'terminal', title: 'cd - — назад', cmd: 'cd -',
+    info: `<p><code>cd -</code> возвращает в <b>предыдущую</b> папку — как кнопка «назад» в браузере.</p>
+           <p>При этом печатает путь, куда ты вернулся.</p>`,
+    task: 'Вернитесь в предыдущую папку.',
+    hint: 'cd - — дефис, не подчёркивание.',
+    expect: { regex: /^cd\s+-$/ },
+    output: '/home/user/quest',
+    success: { icon:'↩️', title:'Назад!', message:'cd - всегда туда, где был до этого.', continueText:'К викторине →' }
+  },
+  {
+    id: 'term-cd-quiz', type: 'quiz', title: 'Проверка: cd',
+    info: `<p>Проверим переходы.</p>`,
+    task: 'Выбери правильный вариант.',
+    question: 'Куда ведёт <b>cd ..</b>?',
+    options: ['В домашнюю папку','На уровень выше','В корень системы','Никуда, это ошибка'],
+    correct: 1,
+    hint: '.. — родительская папка.',
+    success: { icon:'🎯', title:'Верно!', continueText:'Дальше →' }
+  },
+
+  /* ═══════════════ mkdir ═══════════════ */
+
+  {
+    id: 'term-mkdir-1', type: 'terminal', title: 'mkdir — создать папку', cmd: 'mkdir',
+    info: `<p><code>mkdir</code> (make directory) — создаёт новую папку.</p>
+           <p>Синтаксис: <code>mkdir имя_папки</code>.</p>`,
+    task: 'Создайте папку <b>projects</b>.',
+    hint: 'mkdir projects',
+    expect: { regex: /^mkdir\s+projects$/i },
+    output: '✓ Папка projects создана',
+    success: { icon:'📁', title:'Готово!', message:'Папка появилась.', continueText:'К mkdir -p →' }
+  },
+  {
+    id: 'term-mkdir-p', type: 'terminal', title: 'mkdir -p — вложенные папки', cmd: 'mkdir -p',
+    info: `<p>Флаг <code>-p</code> (parents) создаёт <b>цепочку</b> папок за один раз.</p>
+           <p>Без него <code>mkdir a/b/c</code> упадёт, если <code>a</code> не существует.</p>`,
+    task: 'Создайте вложенные папки <b>a/b/c</b> одной командой.',
+    hint: 'mkdir -p a/b/c',
+    expect: { regex: /^mkdir\s+-p\s+a\/b\/c$/i },
+    output: '✓ Создано: a/b/c',
+    success: { icon:'🌲', title:'Цепочка!', message:'-p создаёт все промежуточные папки.', continueText:'К touch →' }
+  },
+
+  /* ═══════════════ touch ═══════════════ */
+
+  {
+    id: 'term-touch-1', type: 'terminal', title: 'touch — создать файл', cmd: 'touch',
+    info: `<p><code>touch</code> создаёт <b>пустой</b> файл с указанным именем.</p>
+           <p>Если файл уже есть — обновляет время его изменения.</p>`,
+    task: 'Создайте файл <b>notes.txt</b>.',
+    hint: 'touch notes.txt',
+    expect: { regex: /^touch\s+notes\.txt$/i },
+    output: '✓ notes.txt создан (0 байт)',
+    success: { icon:'📄', title:'Файл готов', continueText:'К touch ×3 →' }
+  },
+  {
+    id: 'term-touch-multi', type: 'terminal', title: 'touch — сразу несколько', cmd: 'touch',
+    info: `<p><code>touch</code> принимает <b>список</b> файлов: <code>touch a.txt b.txt c.txt</code>.</p>
+           <p>Так же работают многие UNIX-команды — они умеют принимать много аргументов.</p>`,
+    task: 'Создайте сразу три файла: <b>a.txt</b>, <b>b.txt</b>, <b>c.txt</b>.',
+    hint: 'touch a.txt b.txt c.txt — через пробел.',
+    expect: { regex: /^touch\s+a\.txt\s+b\.txt\s+c\.txt$/ },
+    output: ['✓ a.txt создан', '✓ b.txt создан', '✓ c.txt создан'],
+    success: { icon:'📚', title:'Три сразу!', message:'Аргументы разделяются пробелами.', continueText:'К echo →' }
+  },
+
+  /* ═══════════════ echo ═══════════════ */
+
+  {
+    id: 'term-echo-1', type: 'terminal', title: 'echo — вывод текста', cmd: 'echo',
+    info: `<p><code>echo</code> повторяет переданный текст на экран.</p>
+           <p>Простейший способ что-то напечатать из терминала.</p>`,
+    task: 'Выведите слово <b>Hello</b>.',
+    hint: 'echo Hello',
+    expect: { regex: /^echo\s+Hello$/i },
+    output: 'Hello',
+    success: { icon:'🔊', title:'Эхо!', continueText:'К echo с кавычками →' }
+  },
+  {
+    id: 'term-echo-quote', type: 'terminal', title: 'echo "..." — с пробелами', cmd: 'echo',
+    info: `<p>Без кавычек <code>echo Hello world</code> тоже работает, но пробелы и спецсимволы обрабатываются не всегда так, как хочется.</p>
+           <p>Если текст содержит пробелы — оборачивай его в <code>"..."</code> или <code>'...'</code>.</p>`,
+    task: 'Выведите фразу <b>Hello, World!</b> в двойных кавычках.',
+    hint: 'echo "Hello, World!"',
+    expect: { regex: /^echo\s+["']Hello,\s*World!["']$/i },
+    output: 'Hello, World!',
+    success: { icon:'💬', title:'Кавычки!', message:'Кавычки сохраняют пробелы и запятые.', continueText:'К echo > →' }
+  },
+  {
+    id: 'term-echo-redir', type: 'terminal', title: 'echo > — запись в файл', cmd: 'echo >',
+    info: `<p>Оператор <code>&gt;</code> перенаправляет вывод <b>в файл</b>.</p>
+           <p><code>echo "Hi" &gt; file.txt</code> — создаст файл (или перезапишет).</p>
+           <p><b>Важно:</b> если файл существовал, старое содержимое пропадёт.</p>`,
+    task: 'Запишите слово <b>Hello</b> в файл <b>greet.txt</b>.',
+    hint: 'echo Hello > greet.txt',
+    expect: { regex: /^echo\s+["']?Hello["']?\s*>\s*greet\.txt$/i },
+    output: '✓ Записано в greet.txt',
+    success: { icon:'📝', title:'Записано!', message:'> создаёт или перезаписывает файл.', continueText:'К echo >> →' }
+  },
+  {
+    id: 'term-echo-append', type: 'terminal', title: 'echo >> — добавить в конец', cmd: 'echo >>',
+    info: `<p>Двойное <code>&gt;&gt;</code> <b>добавляет</b> в конец файла, не стирая старое.</p>
+           <p>Разница: <code>&gt;</code> — перезапись, <code>&gt;&gt;</code> — дозапись.</p>`,
+    task: 'Допишите слово <b>World</b> в конец файла <b>greet.txt</b>.',
+    hint: 'echo World >> greet.txt',
+    expect: { regex: /^echo\s+["']?World["']?\s*>>\s*greet\.txt$/i },
+    output: '✓ Добавлено в greet.txt',
+    success: { icon:'➕', title:'Добавлено!', continueText:'К cat →' }
+  },
+
+  /* ═══════════════ cat ═══════════════ */
+
+  {
+    id: 'term-cat-1', type: 'terminal', title: 'cat — показать содержимое', cmd: 'cat',
+    info: `<p><code>cat</code> (concatenate) — показывает содержимое файла прямо в терминале.</p>
+           <p>Хорошо работает для небольших текстовых файлов.</p>`,
+    task: 'Покажите содержимое файла <b>readme.txt</b>.',
+    hint: 'cat readme.txt',
+    expect: { regex: /^cat\s+readme\.txt$/i },
+    output: ['Welcome to Terminal Quest!', 'Удачи в приключении.'],
+    success: { icon:'📖', title:'Прочитано!', continueText:'К cat -n →' }
+  },
+  {
+    id: 'term-cat-n', type: 'terminal', title: 'cat -n — с номерами строк', cmd: 'cat -n',
+    info: `<p>Флаг <code>-n</code> нумерует строки при выводе. Полезно для больших файлов.</p>`,
+    task: 'Покажите файл <b>readme.txt</b> с номерами строк.',
+    hint: 'cat -n readme.txt',
+    expect: { regex: /^cat\s+-n\s+readme\.txt$/ },
+    output: ['     1\tWelcome to Terminal Quest!', '     2\tУдачи в приключении.'],
+    success: { icon:'🔢', title:'С номерами!', continueText:'К cat с двумя файлами →' }
+  },
+  {
+    id: 'term-cat-multi', type: 'terminal', title: 'cat — несколько файлов', cmd: 'cat',
+    info: `<p><code>cat</code> умеет показывать <b>несколько файлов подряд</b>: вывод объединяется.</p>
+           <p>Отсюда и название — concatenate (соединять).</p>`,
+    task: 'Покажите содержимое <b>a.txt</b> и <b>b.txt</b> одной командой.',
+    hint: 'cat a.txt b.txt',
+    expect: { regex: /^cat\s+a\.txt\s+b\.txt$/ },
+    output: ['содержимое a.txt', 'содержимое b.txt'],
+    success: { icon:'📚', title:'Объединено!', message:'cat склеил два файла в один поток.', continueText:'К cp →' }
+  },
+
+  /* ═══════════════ cp ═══════════════ */
+
+  {
+    id: 'term-cp-1', type: 'terminal', title: 'cp — копировать файл', cmd: 'cp',
+    info: `<p><code>cp</code> (copy) копирует файл: <code>cp откуда куда</code>.</p>`,
+    task: 'Скопируйте <b>readme.txt</b> в <b>readme.bak</b>.',
+    hint: 'cp readme.txt readme.bak',
+    expect: { regex: /^cp\s+readme\.txt\s+readme\.bak$/ },
+    output: '✓ Скопировано: readme.txt → readme.bak',
+    success: { icon:'📑', title:'Копия!', continueText:'К cp -r →' }
+  },
+  {
+    id: 'term-cp-r', type: 'terminal', title: 'cp -r — копировать папку', cmd: 'cp -r',
+    info: `<p>Флаг <code>-r</code> (recursive) нужен, чтобы копировать <b>папки</b>.</p>
+           <p>Без него <code>cp dir1 dir2</code> выдаст ошибку.</p>`,
+    task: 'Скопируйте папку <b>Documents</b> в <b>Documents_backup</b>.',
+    hint: 'cp -r Documents Documents_backup',
+    expect: { regex: /^cp\s+-r\s+Documents\s+Documents_backup$/ },
+    output: '✓ Скопировано: Documents → Documents_backup',
+    success: { icon:'🗂️', title:'Папка скопирована!', continueText:'К mv →' }
+  },
+
+  /* ═══════════════ mv ═══════════════ */
+
+  {
+    id: 'term-mv', type: 'terminal', title: 'mv — переместить или переименовать', cmd: 'mv',
+    info: `<p><code>mv</code> (move) перемещает файл или переименовывает его.</p>
+           <p>Синтаксис: <code>mv откуда куда</code>. Если папка одна и та же — это переименование.</p>`,
+    task: 'Переименуйте файл <b>notes.txt</b> в <b>todo.txt</b>.',
+    hint: 'mv notes.txt todo.txt',
+    expect: { regex: /^mv\s+notes\.txt\s+todo\.txt$/ },
+    output: '✓ notes.txt → todo.txt',
+    success: { icon:'✏️', title:'Переименовано!', continueText:'К rm →' }
+  },
+
+  /* ═══════════════ rm ═══════════════ */
+
+  {
+    id: 'term-rm-1', type: 'terminal', title: 'rm — удалить файл', cmd: 'rm',
+    info: `<p><code>rm</code> (remove) удаляет файлы.</p>
+           <p><b>Осторожно:</b> в терминале нет корзины — вернуть не получится.</p>`,
+    task: 'Удалите файл <b>todo.txt</b>.',
+    hint: 'rm todo.txt',
+    expect: { regex: /^rm\s+todo\.txt$/ },
+    output: '✓ todo.txt удалён',
+    success: { icon:'🗑️', title:'Удалено!', continueText:'К rm -r →' }
+  },
+  {
+    id: 'term-rm-r', type: 'terminal', title: 'rm -r — удалить папку', cmd: 'rm -r',
+    info: `<p>Флаг <code>-r</code> (recursive) удаляет папку вместе с содержимым.</p>
+           <p><b>Будь осторожен:</b> <code>rm -rf /</code> может разрушить систему. Никогда так не делай.</p>`,
+    task: 'Удалите папку <b>old_stuff</b> вместе с содержимым.',
+    hint: 'rm -r old_stuff',
+    expect: { regex: /^rm\s+-r\s+old_stuff$/ },
+    output: '✓ old_stuff удалена',
+    success: { icon:'💥', title:'Удалено рекурсивно!', message:'-r нужен для папок.', continueText:'К rm -i →' }
+  },
+  {
+    id: 'term-rm-i', type: 'terminal', title: 'rm -i — с подтверждением', cmd: 'rm -i',
+    info: `<p>Флаг <code>-i</code> (interactive) спрашивает подтверждение перед удалением.</p>
+           <p>Хорошая привычка в рабочих системах.</p>`,
+    task: 'Удалите <b>important.txt</b> с подтверждением.',
+    hint: 'rm -i important.txt',
+    expect: { regex: /^rm\s+-i\s+important\.txt$/ },
+    output: 'rm: удалить regular file "important.txt"? y',
+    success: { icon:'🛡️', title:'Безопасно!', continueText:'К head →' }
+  },
+
+  /* ═══════════════ head / tail ═══════════════ */
+
+  {
+    id: 'term-head', type: 'terminal', title: 'head — первые строки', cmd: 'head',
+    info: `<p><code>head</code> показывает первые 10 строк файла.</p>
+           <p>Можно указать количество: <code>head -n 5 file.txt</code>.</p>`,
+    task: 'Покажите первые 10 строк файла <b>log.txt</b>.',
+    hint: 'head log.txt',
+    expect: { regex: /^head\s+log\.txt$/ },
+    output: ['2024-01-01 08:00:00 system ready', '2024-01-01 08:00:01 network up', '... (ещё 8 строк)'],
+    success: { icon:'🔝', title:'Начало!', continueText:'К tail →' }
+  },
+  {
+    id: 'term-tail', type: 'terminal', title: 'tail — последние строки', cmd: 'tail',
+    info: `<p><code>tail</code> показывает последние 10 строк файла.</p>
+           <p>Очень полезно для логов: <code>tail -f log.txt</code> «следит» за файлом в реальном времени.</p>`,
+    task: 'Покажите последние строки файла <b>log.txt</b>.',
+    hint: 'tail log.txt',
+    expect: { regex: /^tail\s+log\.txt$/ },
+    output: ['2024-01-01 09:55:00 user login', '2024-01-01 09:58:12 user logout'],
+    success: { icon:'🔻', title:'Конец!', continueText:'К grep →' }
+  },
+
+  /* ═══════════════ grep ═══════════════ */
+
+  {
+    id: 'term-grep', type: 'terminal', title: 'grep — поиск по тексту', cmd: 'grep',
+    info: `<p><code>grep</code> ищет строки, содержащие указанный текст.</p>
+           <p>Синтаксис: <code>grep "шаблон" файл</code>.</p>`,
+    task: 'Найдите в <b>log.txt</b> строки со словом <b>error</b>.',
+    hint: 'grep "error" log.txt',
+    expect: { regex: /^grep\s+["']?error["']?\s+log\.txt$/i },
+    output: ['2024-01-01 08:15:00 error: disk full', '2024-01-01 08:20:10 error: retry'],
+    success: { icon:'🔍', title:'Нашёл!', continueText:'К wc →' }
+  },
+
+  /* ═══════════════ wc ═══════════════ */
+
+  {
+    id: 'term-wc', type: 'terminal', title: 'wc — посчитать строки', cmd: 'wc',
+    info: `<p><code>wc</code> (word count) считает строки, слова и байты.</p>
+           <p>Флаг <code>-l</code> — только строки, <code>-w</code> — слова, <code>-c</code> — байты.</p>`,
+    task: 'Посчитайте строки в <b>log.txt</b>.',
+    hint: 'wc -l log.txt',
+    expect: { regex: /^wc\s+-l\s+log\.txt$/ },
+    output: '42 log.txt',
+    success: { icon:'🔢', title:'42 строки!', continueText:'К man →' }
+  },
+
+  /* ═══════════════ man ═══════════════ */
+
+  {
+    id: 'term-man', type: 'terminal', title: 'man — справка', cmd: 'man',
+    info: `<p><code>man</code> (manual) — открывает <b>инструкцию</b> по команде.</p>
+           <p>Например: <code>man ls</code> — все флаги команды ls.</p>`,
+    task: 'Откройте справку по команде <b>ls</b>.',
+    hint: 'man ls',
+    expect: { regex: /^man\s+ls$/ },
+    output: ['LS(1)                    User Commands                   LS(1)', 'NAME', '       ls - list directory contents', '...'],
+    success: { icon:'📖', title:'Справка открыта!', message:'man — твой лучший друг в терминале.', continueText:'К clear →' }
+  },
+
+  /* ═══════════════ clear ═══════════════ */
+
+  {
+    id: 'term-clear', type: 'terminal', title: 'clear — очистить экран', cmd: 'clear',
+    info: `<p><code>clear</code> очищает экран терминала. История команд при этом не стирается.</p>`,
+    task: 'Очистите экран терминала.',
+    hint: 'Одно слово: clear.',
+    expect: { regex: /^clear$/ },
+    output: '(экран очищен)',
+    success: { icon:'🧼', title:'Чисто!', continueText:'К history →' }
+  },
+
+  /* ═══════════════ history ═══════════════ */
+
+  {
+    id: 'term-history', type: 'terminal', title: 'history — история команд', cmd: 'history',
+    info: `<p><code>history</code> показывает список команд, которые ты вводил ранее.</p>
+           <p>Можно повторять их стрелкой вверх или командой <code>!N</code>.</p>`,
+    task: 'Покажите историю команд.',
+    hint: 'Одно слово: history.',
+    expect: { regex: /^history$/ },
+    output: ['    1  ls', '    2  pwd', '    3  cd Documents', '    4  history'],
+    success: { icon:'🕰️', title:'Вся история!', message:'history спасает, когда забыл команду.', continueText:'К финалу →' }
+  },
+
+/* ═══════════════════════════════════════════════════════════
+   ЧАСТЬ 2: СЕТЕВЫЕ ОСНОВЫ
+   ═══════════════════════════════════════════════════════════ */
+
+{
+  id: 'term-ping', type: 'terminal', title: 'ping — жив ли узел?', cmd: 'ping',
+  info: `<p>Добро пожаловать в <b>сетевую часть</b>! 🛰️</p>
+         <p><code>ping</code> отправляет маленькие пакеты удалённому серверу
+         и ждёт ответа. Пришёл ответ — узел жив и доступен.</p>
+         <p>Синтаксис: <code>ping адрес</code>. Остановить — <code>Ctrl+C</code>.</p>`,
+  task: 'Проверьте связь с сервером <b>example.com</b>.',
+  hint: 'ping example.com',
+  expect: { regex: /^ping\s+example\.com$/i },
+  output: [
+    'PING example.com (93.184.216.34): 56 data bytes',
+    '64 bytes from 93.184.216.34: icmp_seq=0 ttl=56 time=12.4 ms',
+    '64 bytes from 93.184.216.34: icmp_seq=1 ttl=56 time=11.8 ms',
+    '--- example.com ping statistics ---',
+    '2 packets transmitted, 2 received, 0% packet loss'
+  ],
+  success: { icon:'📡', title:'Связь есть!', message:'ping — первое, что проверяют при сетевых проблемах.', continueText:'К ping -c →' }
+},
+{
+  id: 'term-ping-c', type: 'terminal', title: 'ping -c — ограниченный ping', cmd: 'ping -c',
+  info: `<p>Флаг <code>-c N</code> (count) — отправить ровно <b>N пакетов</b> и остановиться.</p>
+         <p>Иначе ping будет «пинговать» бесконечно, пока не нажмёшь Ctrl+C.</p>`,
+  task: 'Отправьте ровно <b>4</b> пакета на <b>8.8.8.8</b> (публичный DNS Google).',
+  hint: 'ping -c 4 8.8.8.8',
+  expect: { regex: /^ping\s+-c\s+4\s+8\.8\.8\.8$/ },
+  output: [
+    'PING 8.8.8.8 (8.8.8.8): 56 data bytes',
+    '64 bytes from 8.8.8.8: icmp_seq=0 ttl=117 time=8.5 ms',
+    '64 bytes from 8.8.8.8: icmp_seq=1 ttl=117 time=7.9 ms',
+    '4 packets transmitted, 4 received, 0% packet loss'
+  ],
+  success: { icon:'🔢', title:'Четыре из четырёх!', message:'-c полезен в скриптах и для быстрой проверки.', continueText:'К hostname →' }
+},
+{
+  id: 'term-hostname', type: 'terminal', title: 'hostname — имя машины', cmd: 'hostname',
+  info: `<p><code>hostname</code> показывает <b>имя текущего компьютера</b> в сети.</p>
+         <p>Пригодится, когда подключаешься к нескольким машинам и хочешь понимать, где ты.</p>`,
+  task: 'Узнайте имя текущей машины.',
+  hint: 'Одно слово: hostname.',
+  expect: { regex: /^hostname$/ },
+  output: 'quest-linux',
+  success: { icon:'🏷️', title:'Так тебя зовут!', continueText:'К ip a →' }
+},
+{
+  id: 'term-ip-a', type: 'terminal', title: 'ip a — сетевые интерфейсы', cmd: 'ip a',
+  info: `<p><code>ip a</code> (address) показывает <b>все сетевые интерфейсы</b> и их IP-адреса.</p>
+         <p>Ты увидишь <code>lo</code> (loopback, 127.0.0.1) и <code>eth0</code> или <code>wlan0</code> — реальную сетевую карту.</p>`,
+  task: 'Покажите все сетевые интерфейсы и их адреса.',
+  hint: 'ip a — команда из двух частей.',
+  expect: { oneOf: ['ip a', 'ip addr', 'ip address'] },
+  output: [
+    '1: lo: <LOOPBACK,UP> mtu 65536',
+    '    inet 127.0.0.1/8 scope host lo',
+    '2: eth0: <BROADCAST,MULTICAST,UP> mtu 1500',
+    '    inet 192.168.1.42/24 brd 192.168.1.255 scope global eth0'
+  ],
+  success: { icon:'🌐', title:'Твоя сеть!', message:'eth0 — это физическая сетевая карта. Её IP — 192.168.1.42.', continueText:'К curl →' }
+},
+
+/* ═══════════════ WEB-ЗАПРОСЫ ═══════════════ */
+
+{
+  id: 'term-curl', type: 'terminal', title: 'curl — забрать страницу', cmd: 'curl',
+  info: `<p><code>curl</code> — швейцарский нож для HTTP. Отправляет запросы и печатает ответ в терминал.</p>
+         <p>Синтаксис: <code>curl адрес</code>.</p>`,
+  task: 'Заберите главную страницу <b>example.com</b>.',
+  hint: 'curl example.com',
+  expect: { regex: /^curl\s+example\.com$/i },
+  output: ['<!doctype html>', '<html><head><title>Example Domain</title>...</html>'],
+  success: { icon:'📥', title:'HTML получен!', message:'curl печатает тело ответа прямо в терминал.', continueText:'К curl -I →' }
+},
+{
+  id: 'term-curl-I', type: 'terminal', title: 'curl -I — только заголовки', cmd: 'curl -I',
+  info: `<p>Флаг <code>-I</code> (head) — отправить HEAD-запрос: сервер вернёт <b>только заголовки</b> без тела.</p>
+         <p>Полезно, чтобы быстро узнать: код ответа, тип контента, кэш, сервер.</p>`,
+  task: 'Получите только заголовки от <b>example.com</b>.',
+  hint: 'curl -I example.com — заглавная i.',
+  expect: { regex: /^curl\s+-I\s+example\.com$/i },
+  output: [
+    'HTTP/2 200',
+    'content-type: text/html; charset=UTF-8',
+    'server: ECS (dcb/7F83)',
+    'cache-control: max-age=604800'
+  ],
+  success: { icon:'🎫', title:'Только заголовки!', message:'Так проверяют, жив ли сайт, без загрузки всей страницы.', continueText:'К wget →' }
+},
+{
+  id: 'term-wget', type: 'terminal', title: 'wget — скачать в файл', cmd: 'wget',
+  info: `<p><code>wget</code> скачивает файл <b>с сохранением на диск</b> — в отличие от curl, который печатает в экран.</p>
+         <p>Синтаксис: <code>wget адрес</code> — файл сохранится под именем из URL.</p>`,
+  task: 'Скачайте файл <b>https://example.com/logo.png</b>.',
+  hint: 'wget https://example.com/logo.png',
+  expect: { regex: /^wget\s+https?:\/\/example\.com\/logo\.png$/i },
+  output: [
+    '--2024-01-15 10:30:00--  https://example.com/logo.png',
+    'Resolving example.com... 93.184.216.34',
+    'Saving to: "logo.png"',
+    'logo.png  100%[===================>]  8.2K  --.-KB/s  in 0.02s',
+    '✓ Сохранено: logo.png (8384 байт)'
+  ],
+  success: { icon:'💾', title:'Скачано!', message:'wget умеет докачивать обрыв — ключ -c.', continueText:'К nslookup →' }
+},
+
+/* ═══════════════ DNS ═══════════════ */
+
+{
+  id: 'term-nslookup', type: 'terminal', title: 'nslookup — DNS-запрос', cmd: 'nslookup',
+  info: `<p><code>nslookup</code> (name server lookup) спрашивает DNS-сервер: «какой IP у этого домена?»</p>
+         <p>Именно этот процесс происходит каждый раз, когда ты открываешь сайт в браузере.</p>`,
+  task: 'Узнайте IP-адрес домена <b>example.com</b>.',
+  hint: 'nslookup example.com',
+  expect: { regex: /^nslookup\s+example\.com$/i },
+  output: [
+    'Server:  8.8.8.8',
+    'Address: 8.8.8.8#53',
+    '',
+    'Non-authoritative answer:',
+    'Name:    example.com',
+    'Address: 93.184.216.34'
+  ],
+  success: { icon:'🔎', title:'DNS ответил!', message:'93.184.216.34 — вот IP example.com.', continueText:'К dig →' }
+},
+{
+  id: 'term-dig', type: 'terminal', title: 'dig — продвинутый DNS', cmd: 'dig',
+  info: `<p><code>dig</code> (domain information groper) — более мощный аналог nslookup.</p>
+         <p>Показывает больше деталей: тип записи (A, MX, TXT), TTL, время ответа.</p>
+         <p>Синтаксис: <code>dig домен</code>.</p>`,
+  task: 'Запросите DNS-запись для <b>example.com</b>.',
+  hint: 'dig example.com',
+  expect: { regex: /^dig\s+example\.com$/i },
+  output: [
+    '; <<>> DiG 9.16.1 <<>> example.com',
+    ';; QUESTION SECTION:',
+    ';example.com.            IN      A',
+    '',
+    ';; ANSWER SECTION:',
+    'example.com.     3600    IN      A       93.184.216.34',
+    '',
+    ';; Query time: 24 msec'
+  ],
+  success: { icon:'🔬', title:'Детальный ответ!', message:'dig — стандарт в пентесте для DNS-разведки.', continueText:'К whois →' }
+},
+{
+  id: 'term-whois', type: 'terminal', title: 'whois — чей это домен?', cmd: 'whois',
+  info: `<p><code>whois</code> показывает, <b>кому принадлежит</b> домен или IP-адрес: регистратор, дата создания, контакты.</p>
+         <p>Это <b>первый шаг пассивной разведки</b> — можно узнать о цели, не «трогая» её сервер.</p>`,
+  task: 'Узнайте, кому принадлежит домен <b>example.com</b>.',
+  hint: 'whois example.com',
+  expect: { regex: /^whois\s+example\.com$/i },
+  output: [
+    'Domain Name: EXAMPLE.COM',
+    'Registry Domain ID: 2336799_DOMAIN_COM-VRSN',
+    'Registrar: RESERVED-Internet Assigned Numbers Authority',
+    'Creation Date: 1995-08-14T04:00:00Z',
+    'Name Server: A.IANA-SERVERS.NET'
+  ],
+  success: { icon:'🕵️', title:'Разведка!', message:'whois — основа OSINT. Все данные из публичных источников.', continueText:'К netstat →' }
+},
+
+/* ═══════════════ ПОРТЫ И СОЕДИНЕНИЯ ═══════════════ */
+
+{
+  id: 'term-netstat', type: 'terminal', title: 'netstat — открытые порты', cmd: 'netstat',
+  info: `<p><code>netstat</code> показывает <b>сетевые соединения</b> и <b>открытые порты</b>.</p>
+         <p>Флаги: <code>-t</code> TCP, <code>-u</code> UDP, <code>-l</code> только слушающие, <code>-n</code> в виде цифр.</p>
+         <p>Часто используют вместе: <code>netstat -tuln</code>.</p>`,
+  task: 'Покажите все <b>слушающие</b> TCP и UDP порты в цифровом виде.',
+  hint: 'netstat -tuln',
+  expect: { oneOf: ['netstat -tuln', 'netstat -ltun', 'netstat -tunl', 'netstat -nutl'] },
+  output: [
+    'Proto Recv-Q Send-Q Local Address           Foreign Address         State',
+    'tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN',
+    'tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN',
+    'tcp6       0      0 :::80                   :::*                    LISTEN',
+    'udp        0      0 0.0.0.0:53              0.0.0.0:*'
+  ],
+  success: { icon:'🚪', title:'Порты видны!', message:'22 — SSH, 80 — HTTP, 5432 — PostgreSQL. Каждый порт — потенциальная «дверь».', continueText:'К ss →' }
+},
+{
+  id: 'term-ss', type: 'terminal', title: 'ss — современная замена netstat', cmd: 'ss',
+  info: `<p><code>ss</code> (socket statistics) — то же, что netstat, но <b>быстрее</b> и современнее.</p>
+         <p>Флаги те же: <code>-tuln</code>. netstat во многих системах уже устарел.</p>`,
+  task: 'Покажите слушающие TCP и UDP порты командой ss.',
+  hint: 'ss -tuln',
+  expect: { oneOf: ['ss -tuln', 'ss -ltun', 'ss -tunl', 'ss -nutl'] },
+  output: [
+    'Netid State  Local Address:Port   Process',
+    'tcp   LISTEN 0.0.0.0:22',
+    'tcp   LISTEN 127.0.0.1:5432',
+    'tcp   LISTEN [::]:80',
+    'udp   UNCONN 0.0.0.0:53'
+  ],
+  success: { icon:'⚡', title:'Быстрее!', message:'ss работает мгновенно, даже когда соединений тысячи.', continueText:'К lsof →' }
+},
+{
+  id: 'term-lsof', type: 'terminal', title: 'lsof -i — кто слушает порт', cmd: 'lsof',
+  info: `<p><code>lsof</code> (list open files) показывает, <b>какие процессы</b> держат файлы и порты.</p>
+         <p>Флаг <code>-i</code> фильтрует только сетевые соединения. Пригодится, когда нужно найти «кто занял порт».</p>`,
+  task: 'Покажите, какие процессы слушают сетевые порты.',
+  hint: 'lsof -i',
+  expect: { oneOf: ['lsof -i', 'sudo lsof -i'] },
+  output: [
+    'COMMAND   PID USER   FD   TYPE  DEVICE  SIZE/OFF NODE NAME',
+    'sshd      812 root    3u  IPv4  23456      0t0  TCP *:22 (LISTEN)',
+    'postgres 1204 postgres 5u IPv4 34567      0t0  TCP 127.0.0.1:5432 (LISTEN)',
+    'nginx    1450 root    6u  IPv6 45678      0t0  TCP *:80 (LISTEN)'
+  ],
+  success: { icon:'🔍', title:'Нашли виновника!', message:'lsof — так определяют, кто занял нужный порт.', continueText:'К ssh →' }
+},
+
+/* ═══════════════ SSH — УДАЛЁННЫЙ ДОСТУП ═══════════════ */
+
+{
+  id: 'term-ssh', type: 'terminal', title: 'ssh — подключиться к серверу', cmd: 'ssh',
+  info: `<p><code>ssh</code> (secure shell) — <b>шифрованное подключение</b> к удалённому серверу.</p>
+         <p>Синтаксис: <code>ssh user@host</code>. После ввода пароля (или ключа) ты попадаешь в терминал удалённой машины.</p>
+         <p>Именно так админы управляют серверами по всему миру.</p>`,
+  task: 'Подключитесь к серверу <b>user@192.168.1.100</b> (командой, не вводя пароль).',
+  hint: 'ssh user@192.168.1.100',
+  expect: { regex: /^ssh\s+user@192\.168\.1\.100$/ },
+  output: [
+    "The authenticity of host '192.168.1.100' can't be established.",
+    'ED25519 key fingerprint is SHA256:abc123...',
+    'Are you sure you want to continue connecting (yes/no)? yes',
+    "user@192.168.1.100's password:",
+    'Welcome to Ubuntu 22.04 LTS',
+    'user@server:~$'
+  ],
+  success: { icon:'🔐', title:'Ты внутри!', message:'SSH — золотой стандарт удалённого доступа.', continueText:'К ssh-keygen →' }
+},
+{
+  id: 'term-ssh-keygen', type: 'terminal', title: 'ssh-keygen — ключи вместо пароля', cmd: 'ssh-keygen',
+  info: `<p><code>ssh-keygen</code> создаёт <b>пару ключей</b>: приватный (твой, никому) и публичный (его кладут на сервер).</p>
+         <p>Пароль не нужен — сервер узнаёт тебя по ключу. Это безопаснее и удобнее.</p>`,
+  task: 'Создайте новую пару ключей SSH.',
+  hint: 'ssh-keygen (без аргументов) — тип по умолчанию.',
+  expect: { regex: /^ssh-keygen(\s+-t\s+(rsa|ed25519))?$/ },
+  output: [
+    'Generating public/private ed25519 key pair.',
+    'Enter file in which to save the key (/home/user/.ssh/id_ed25519): [Enter]',
+    'Your identification has been saved in /home/user/.ssh/id_ed25519',
+    'Your public key has been saved in /home/user/.ssh/id_ed25519.pub',
+    'The key fingerprint is: SHA256:xY9k... user@quest-linux'
+  ],
+  success: { icon:'🗝️', title:'Ключи готовы!', message:'Публичный ключ (.pub) кладут на сервер, приватный — держи в тайне.', continueText:'К scp →' }
+},
+{
+  id: 'term-scp', type: 'terminal', title: 'scp — копировать по SSH', cmd: 'scp',
+  info: `<p><code>scp</code> (secure copy) — копирует файлы между машинами <b>поверх SSH</b>.</p>
+         <p>Синтаксис: <code>scp откуда куда</code>. Один из путей может быть удалённым: <code>user@host:/path</code>.</p>`,
+  task: 'Скопируйте локальный файл <b>report.pdf</b> на сервер <b>user@192.168.1.100:/home/user/</b>.',
+  hint: 'scp report.pdf user@192.168.1.100:/home/user/',
+  expect: { regex: /^scp\s+report\.pdf\s+user@192\.168\.1\.100:\/home\/user\/$/ },
+  output: [
+    "user@192.168.1.100's password:",
+    'report.pdf                                    100%  220KB   2.1MB/s   00:00',
+    '✓ Файл скопирован'
+  ],
+  success: { icon:'📤', title:'Передано!', message:'scp — самый простой способ передать файл на сервер.', continueText:'К chmod →' }
+},
+
+/* ═══════════════ ПРАВА И БЕЗОПАСНОСТЬ ═══════════════ */
+
+{
+  id: 'term-chmod-basic', type: 'terminal', title: 'chmod — права доступа', cmd: 'chmod',
+  info: `<p>В UNIX у каждого файла есть права: <b>чтение (r), запись (w), выполнение (x)</b>.</p>
+         <p>Они выдаются трём категориям: владелец, группа, все остальные.</p>
+         <p>Пример: <code>chmod +x script.sh</code> — добавить право выполнения.</p>`,
+  task: 'Сделайте файл <b>script.sh</b> исполняемым.',
+  hint: 'chmod +x script.sh',
+  expect: { oneOf: ['chmod +x script.sh', 'chmod u+x script.sh'] },
+  output: '✓ script.sh теперь исполняемый',
+  success: { icon:'⚙️', title:'Теперь запускается!', message:'Без +x скрипт нельзя запустить как ./script.sh.', continueText:'К chmod 755 →' }
+},
+{
+  id: 'term-chmod-755', type: 'terminal', title: 'chmod 755 — цифровые права', cmd: 'chmod',
+  info: `<p>Права можно задавать <b>цифрами</b>: r=4, w=2, x=1. Сумма для каждой категории.</p>
+         <p><code>755</code> = владелец rwx (7), группа r-x (5), все r-x (5).</p>
+         <p>Классика для скриптов и папок общего доступа.</p>`,
+  task: 'Установите права <b>755</b> на файл <b>run.sh</b>.',
+  hint: 'chmod 755 run.sh',
+  expect: { regex: /^chmod\s+755\s+run\.sh$/ },
+  output: '-rwxr-xr-x 1 user user 220 Jan 15 10:30 run.sh',
+  success: { icon:'🔢', title:'755!', message:'Каждая цифра — сумма прав r(4)+w(2)+x(1).', continueText:'К sudo →' }
+},
+{
+  id: 'term-sudo', type: 'terminal', title: 'sudo — права root', cmd: 'sudo',
+  info: `<p><code>sudo</code> (superuser do) выполняет команду от имени <b>администратора</b>.</p>
+         <p>Многие системные операции требуют root: установка пакетов, правка /etc, смена владельца файлов.</p>
+         <p><b>Осторожно:</b> под sudo можно сломать систему. Всегда думай.</p>`,
+  task: 'Обновите список пакетов от имени администратора: <b>sudo apt update</b>.',
+  hint: 'sudo apt update',
+  expect: { regex: /^sudo\s+apt\s+update$/i },
+  output: [
+    '[sudo] password for user:',
+    'Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease',
+    'Get:2 http://security.ubuntu.com/ubuntu jammy-security InRelease',
+    'All packages are up to date.'
+  ],
+  success: { icon:'👑', title:'Как root!', message:'sudo — не «войти как root», а разово выполнить одну команду.', continueText:'К sha256sum →' }
+},
+{
+  id: 'term-sha256sum', type: 'terminal', title: 'sha256sum — контрольная сумма', cmd: 'sha256sum',
+  info: `<p><code>sha256sum</code> вычисляет <b>хеш</b> файла — уникальный «отпечаток» содержимого.</p>
+         <p>Если байт изменится — хеш изменится полностью. Так проверяют, что файл не подменили.</p>`,
+  task: 'Посчитайте SHA-256 для файла <b>installer.iso</b>.',
+  hint: 'sha256sum installer.iso',
+  expect: { regex: /^sha256sum\s+installer\.iso$/ },
+  output: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  installer.iso',
+  success: { icon:'🔏', title:'Отпечаток!', message:'Всегда сверяй хеш скачанных ISO и бинарников с официальным.', continueText:'К traceroute →' }
+},
+
+/* ═══════════════ РАЗВЕДКА (RECON) ═══════════════ */
+
+{
+  id: 'term-traceroute', type: 'terminal', title: 'traceroute — маршрут до цели', cmd: 'traceroute',
+  info: `<p><code>traceroute</code> показывает <b>все узлы</b>, через которые идёт пакет до цели.</p>
+         <p>Помогает понять, где «узкое место» или обрыв сети.</p>`,
+  task: 'Постройте маршрут до <b>8.8.8.8</b>.',
+  hint: 'traceroute 8.8.8.8',
+  expect: { regex: /^traceroute\s+8\.8\.8\.8$/ },
+  output: [
+    'traceroute to 8.8.8.8, 30 hops max',
+    ' 1  192.168.1.1 (192.168.1.1)      1.204 ms',
+    ' 2  10.0.0.1 (10.0.0.1)            5.832 ms',
+    ' 3  172.16.0.1 (172.16.0.1)        9.211 ms',
+    ' 4  8.8.8.8 (8.8.8.8)              8.501 ms'
+  ],
+  success: { icon:'🛣️', title:'Путь виден!', message:'traceroute — карта сети между тобой и сервером.', continueText:'К nmap →' }
+},
+{
+  id: 'term-nmap-basic', type: 'terminal', title: 'nmap — сканирование портов', cmd: 'nmap',
+  info: `<p><code>nmap</code> (network mapper) — <b>главный инструмент</b> пентеста.</p>
+         <p>Он сканирует порты и говорит, какие <b>открыты</b>, какие закрыты и какие сервисы работают.</p>
+         <p><b>Важно (этично!):</b> сканировать можно только <b>свои</b> серверы или те, на которые есть письменное разрешение. Сканирование чужих сетей — незаконно.</p>`,
+  task: 'Просканируйте свой сервер <b>scanme.nmap.org</b> (легально разрешённый для тестов).',
+  hint: 'nmap scanme.nmap.org',
+  expect: { regex: /^nmap\s+scanme\.nmap\.org$/i },
+  output: [
+    'Starting Nmap 7.94 ( https://nmap.org )',
+    'Nmap scan report for scanme.nmap.org (45.33.32.156)',
+    'Host is up (0.14s latency).',
+    'Not shown: 993 closed tcp ports',
+    'PORT      STATE    SERVICE',
+    '22/tcp    open     ssh',
+    '80/tcp    open     http',
+    '9929/tcp  open     nping-echo',
+    '',
+    'Nmap done: 1 IP address (1 host up) scanned in 12.34 seconds'
+  ],
+  success: { icon:'🛰️', title:'Разведка завершена!', message:'Открытые порты — это «двери» на сервер. Закрывай всё, что не нужно.', continueText:'К nmap -sV →' }
+},
+{
+  id: 'term-nmap-sV', type: 'terminal', title: 'nmap -sV — версии сервисов', cmd: 'nmap -sV',
+  info: `<p>Флаг <code>-sV</code> заставляет nmap <b>определить версию</b> каждого сервиса.</p>
+         <p>Например, вместо «80/tcp открыт» ты увидишь «nginx 1.18.0».</p>
+         <p>Для пентестера это критично: устаревшая версия = известные уязвимости.</p>`,
+  task: 'Просканируйте <b>scanme.nmap.org</b> с определением версий.',
+  hint: 'nmap -sV scanme.nmap.org',
+  expect: { regex: /^nmap\s+-sV\s+scanme\.nmap\.org$/i },
+  output: [
+    'PORT    STATE SERVICE  VERSION',
+    '22/tcp  open  ssh      OpenSSH 6.6.1p1 Ubuntu 2ubuntu2 (Ubuntu Linux)',
+    '80/tcp  open  http     Apache httpd 2.4.7 ((Ubuntu))',
+    'Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel'
+  ],
+  success: { icon:'🏷️', title:'Версии!', message:'Теперь видно, что за софт и какой версии. Ищем старые версии — они обычно уязвимы.', continueText:'К nikto →' }
+},
+
+/* ═══════════════ ЭТИЧНЫЙ ХАКИНГ ═══════════════ */
+
+{
+  id: 'term-nikto', type: 'terminal', title: 'nikto — сканер веб-сервера', cmd: 'nikto',
+  info: `<p><code>nikto</code> проверяет веб-сервер на <b>известные слабости</b>: устаревшие версии, открытые админки, утечки файлов, опасные заголовки.</p>
+         <p><b>Этическое правило:</b> только для своих сайтов или тех, где есть разрешение. В чужих сервисах — это атака.</p>`,
+  task: 'Просканируйте <b>http://testphp.vulnweb.com</b> (легальный учебный полигон).',
+  hint: 'nikto -h http://testphp.vulnweb.com',
+  expect: { regex: /^nikto\s+-h\s+https?:\/\/testphp\.vulnweb\.com$/i },
+  output: [
+    '- Nikto v2.5.0',
+    '+ Target IP: 44.228.249.3',
+    '+ Target Hostname: testphp.vulnweb.com',
+    '+ Target Port: 80',
+    '+ Server: Apache/2.4.7 (Ubuntu)',
+    '+ /admin/: Admin login page found',
+    '+ /phpinfo.php: PHP info file found',
+    '+ /backup/: Directory indexing enabled',
+    '+ 7453 requests: 0 error(s)'
+  ],
+  success: { icon:'🛡️', title:'Отчёт готов!', message:'Такие «дырки» надо закрывать в своих проектах до того, как их найдёт кто-то другой.', continueText:'К gobuster →' }
+},
+{
+  id: 'term-gobuster', type: 'terminal', title: 'gobuster — поиск директорий', cmd: 'gobuster',
+  info: `<p><code>gobuster</code> перебирает пути на сайте и находит <b>скрытые страницы и папки</b>: /admin, /backup, /.git.</p>
+         <p>Работает по словарю — заранее подготовленному списку частых имён.</p>
+         <p>Снова: только с разрешения владельца. Иначе — незаконный перебор.</p>`,
+  task: 'Просканируйте директории на <b>http://testphp.vulnweb.com</b> со словарём <b>common.txt</b>.',
+  hint: 'gobuster dir -u http://testphp.vulnweb.com -w common.txt',
+  expect: { regex: /^gobuster\s+dir\s+-u\s+https?:\/\/testphp\.vulnweb\.com\s+-w\s+\S+$/i },
+  output: [
+    '===============================================================',
+    'Gobuster v3.6',
+    'by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)',
+    '===============================================================',
+    '[+] Url:                     http://testphp.vulnweb.com',
+    '[+] Method:                  GET',
+    '[+] Threads:                 10',
+    '[+] Wordlist:                common.txt',
+    '===============================================================',
+    '/admin                (Status: 301) [Size: 0]',
+    '/images               (Status: 301) [Size: 0]',
+    '/login.php            (Status: 200) [Size: 4321]',
+    '/phpinfo.php          (Status: 200) [Size: 51234]'
+  ],
+  success: { icon:'🗺️', title:'Карта сайта!', message:'gobuster находит то, что не видно с главной страницы.', continueText:'К hydra →' }
+},
+{
+  id: 'term-hydra', type: 'terminal', title: 'hydra — перебор паролей (теория)', cmd: 'hydra',
+  info: `<p><b>⚠️ Важно:</b> <code>hydra</code> подбирает пароли перебором. Это <b>крайне опасная</b> техника.</p>
+         <p>Её можно применять <b>только</b>:
+         <ul>
+           <li>на свои сервисы (проверить стойкость своего пароля);</li>
+           <li>в легальных лабораториях (HackTheBox, TryHackMe).</li>
+         </ul>
+         </p>
+         <p>Любое использование против чужих систем — <b>уголовное преступление</b>.</p>
+         <p>Мы только <b>познакомимся с синтаксисом</b>, без реального запуска.</p>`,
+  task: 'Введите <b>hydra -l admin -P pass.txt ssh://target</b> — просто чтобы запомнить вид команды.',
+  hint: 'hydra -l admin -P pass.txt ssh://target',
+  expect: { regex: /^hydra\s+-l\s+admin\s+-P\s+\S+\s+ssh:\/\/\S+$/ },
+  output: [
+    'Hydra v9.5 (c) 2023 by van Hauser/THC',
+    '[WARNING] Использование только с явного разрешения владельца!',
+    '[DATA] max 16 tasks per 1 server',
+    '[DATA] attacking ssh://target:22/',
+    '[STATUS] 0.00 tries/min',
+    '[INFO] — реальный запуск не выполнен в учебных целях.'
+  ],
+  success: { icon:'⚖️', title:'Запомни правило!', message:'Хакер — тот, кто защищает. Настоящая этика — не атаковать без разрешения.', continueText:'К финалу →' }
+},
+
+/* ═══════════════ ФИНАЛЬНАЯ ВИКТОРИНА ═══════════════ */
+
+{
+  id: 'term-net-quiz', type: 'quiz', title: 'Проверка: сеть',
+  info: `<p>Небольшая проверка по сетевой части.</p>`,
+  task: 'Выбери правильный вариант.',
+  question: 'Какая команда покажет <b>IP-адрес</b> домена?',
+  options: ['whoami example.com','nslookup example.com','cat example.com','ping -a example.com'],
+  correct: 1,
+  hint: 'Команда «name server lookup».',
+  success: { icon:'🌐', title:'Верно!', message:'nslookup (или dig) — так узнают IP по домену.', continueText:'Дальше →' }
+},
+{
+  id: 'term-sec-quiz', type: 'quiz', title: 'Проверка: этичный хакинг',
+  info: `<p>Проверим главное правило безопасности.</p>`,
+  task: 'Выбери правильный вариант.',
+  question: 'Когда можно сканировать <b>чужой</b> сервер командой nmap?',
+  options: [
+    'Всегда — это же просто проверка',
+    'Только ночью',
+    'Только с письменного разрешения владельца',
+    'Если сервер открыт из интернета'
+  ],
+  correct: 2,
+  hint: 'Разрешение — ключевое слово в этичном хакинге.',
+  success: { icon:'🏆', title:'Курс пройден!', message:'Ты прошёл путь от ls до этичного хакинга. Теперь ты знаешь силу терминала и правила его применения.', continueText:'Завершить ✓' }
+}
+]
+}, 
+
+    /* ============ КУРС 2: JAVASCRIPT ============ */
+    {
+      id: 'js',
+      title: 'JavaScript',
+      icon: 'JS',
+      labels: { code: 'main.js', success: 'Готово', badge: '✓ Код работает' },
+      lessons: [
+        {
+          id: 'js-log',
+          type: 'code', title: 'console.log', lang: 'js',
+          info: `<p><code>console.log()</code> выводит сообщение в консоль.</p>
+                 <p>Это первая функция, с которой начинают все.</p>`,
+          task: 'Напишите код, который выведет в консоль слово <b>Hello</b>.',
+          hint: 'console.log("Hello");',
+          starter: '// введи код здесь\n',
+          run: true,
+          expect: { regex: /console\.log\s*\(\s*['"`]Hello['"`]\s*\)/i },
+          success: {icon:'💚',title:'Работает!',message:'Ты вывел Hello в консоль.',continueText:'Дальше →'}
+        },
+        {
+          id: 'js-vars',
+          type: 'code', title: 'Переменные', lang: 'js',
+          info: `<p>Переменная создаётся словом <code>let</code> или <code>const</code>.</p>
+                 <p>Например: <code>let x = 5;</code></p>`,
+          task: 'Создайте переменную <b>n</b> со значением <b>42</b> и выведите её через <code>console.log(n)</code>.',
+          hint: 'let n = 42; console.log(n);',
+          starter: '// создай переменную n и выведи её\n',
+          run: true,
+          expect: { regex: /let\s+n\s*=\s*42|const\s+n\s*=\s*42/i },
+          success: {icon:'📦',title:'Верно!',message:'Переменная n = 42 создана.',continueText:'Дальше →'}
+        },
+        {
+          id: 'js-sum',
+          type: 'code', title: 'Сложение', lang: 'js',
+          info: `<p>Числа складываются оператором <code>+</code>.</p>`,
+          task: 'Выведите сумму <b>2 + 3</b> через console.log. В консоли должно появиться <b>5</b>.',
+          hint: 'console.log(2 + 3);',
+          starter: '// посчитай 2 + 3\n',
+          run: true,
+          expect: { regex: /console\.log\s*\(\s*2\s*\+\s*3\s*\)/ },
+          success: {icon:'➕',title:'Отлично!',message:'2 + 3 = 5 — арифметика работает.',continueText:'К викторине →'}
+        },
+        {
+          id: 'js-quiz1',
+          type: 'quiz', title: 'Проверка JS',
+          info: `<p>Проверка основ.</p>`,
+          task: 'Выбери правильный вариант.',
+          question: 'Как объявить переменную в современном JS?',
+          options: ['var x = 1','let x = 1','make x = 1','x := 1'],
+          correct: 1,
+          hint: 'Ключевое слово из трёх букв.',
+          success: {icon:'🎯',title:'Верно!',continueText:'Завершить ✓'}
+        }
+      ]
+    },
+
+    /* ============ КУРС 3: PYTHON ============ */
+    {
+      id: 'python',
+      title: 'Python',
+      icon: 'Py',
+      labels: { code: 'main.py', badge: '✓ Код принят' },
+      lessons: [
+        {
+          id: 'py-print',
+          type: 'code', title: 'print()', lang: 'py',
+          info: `<p>В Python вывод делается функцией <code>print()</code>.</p>`,
+          task: 'Напишите <b>print("Hello")</b>.',
+          hint: 'print("Hello")',
+          starter: '# введи код здесь\n',
+          run: false,
+          output: 'Hello',
+          expect: { regex: /print\s*\(\s*['"`]Hello['"`]\s*\)/i },
+          success: {icon:'🐍',title:'Python работает!',continueText:'Дальше →'}
+        },
+        {
+          id: 'py-quiz1',
+          type: 'quiz', title: 'Проверка Python',
+          info: `<p>Проверка основ.</p>`,
+          task: 'Выбери правильный вариант.',
+          question: 'Как вывести текст в Python?',
+          options: ['echo("text")','console.log("text")','print("text")','output "text"'],
+          correct: 2,
+          hint: 'Одна короткая функция.',
+          success: {icon:'🎉',title:'Верно!',continueText:'Завершить ✓'}
+        }
+      ]
+    },
+
+    /* ============ КУРС 4: МАТЕМАТИКА ============ */
+    {
+      id: 'math',
+      title: 'Математика',
+      icon: '∑',
+      lessons: [
+        {
+          id: 'math-sum',
+          type: 'quiz', title: 'Сложение',
+          info: `<p>Разминка.</p>`,
+          task: 'Выбери правильный ответ.',
+          question: 'Сколько будет <b>7 + 8</b>?',
+          options: ['13','14','15','16'],
+          correct: 2,
+          hint: '7+7=14, плюс ещё один.',
+          success: {icon:'🔢',title:'Верно!'}
+        },
+        {
+          id: 'math-mul',
+          type: 'quiz', title: 'Умножение',
+          info: `<p>Продолжаем.</p>`,
+          task: 'Выбери правильный ответ.',
+          question: '<b>6 × 9</b> = ?',
+          options: ['42','48','54','63'],
+          correct: 2,
+          hint: '6 × 10 = 60, минус 6.',
+          success: {icon:'✖️',title:'Отлично!',continueText:'Завершить ✓'}
+        }
+      ]
+    },
+
+    /* ============ КУРС 5: РУССКИЙ ЯЗЫК ============ */
+    {
+      id: 'russian',
+      title: 'Русский язык',
+      icon: 'Я',
+      lessons: [
+        {
+          id: 'ru-parts',
+          type: 'quiz', title: 'Части речи',
+          info: `<p>Проверка грамматики.</p>`,
+          task: 'Выбери правильный ответ.',
+          question: 'Какая часть речи слово «быстро»?',
+          options: ['Существительное','Прилагательное','Наречие','Глагол'],
+          correct: 2,
+          hint: 'Отвечает на вопрос «как?»',
+          success: {icon:'📝',title:'Верно!',continueText:'Завершить ✓'}
+        }
+      ]
+    }
+
+    /* ────────────────────────────────────────────────────────────
+       ДОБАВЛЯЙ СВОИ КУРСЫ ЗДЕСЬ. У каждого урока желательно задать
+       уникальный id — тогда прогресс не потеряется при вставке
+       новых уроков между существующими.
+       ──────────────────────────────────────────────────────────── */
+  ]
+};
+
+/* ================== УТИЛИТЫ / ID ================== */
+const $ = id => document.getElementById(id);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Слаг из строки (поддержка кириллицы и Unicode) */
+const slug = s => (String(s).toLowerCase().match(/[\p{L}\p{N}]+/gu) || ['x']).join('-');
+
+/* Уникальный ID урока: явный id или автогенерация по названию */
+const lid = (courseId, lesson) => lesson.id || (courseId + '-' + slug(lesson.title));
+
+/* ================== СОСТОЯНИЕ ================== */
+const els = {
+  hudTitle:$('hudTitle'), menuBtn:$('menuBtn'), sidebar:$('sidebar'), sbClose:$('sbClose'),
+  sbList:$('sbList'), sbClear:$('sbClear'), backdrop:$('backdrop'),
+  infoTitle:$('infoTitle'), infoBody:$('infoBody'),
+  taskTitle:$('taskTitle'), taskText:$('taskText'), hintLine:$('hintLine'),
+  termPanel:$('termPanel'), termTitle:$('termTitle'), termBody:$('termBody'),
+  termLog:$('termLog'), termInput:$('termInput'), cmdTag:$('cmdTag'), termBadge:$('termBadge'),
+  codePanel:$('codePanel'), codeTitle:$('codeTitle'), codeArea:$('codeArea'),
+  codeOut:$('codeOut'), runBtn:$('runBtn'), langTag:$('langTag'), codeBadge:$('codeBadge'),
+  quizPanel:$('quizPanel'), quizTitle:$('quizTitle'), quizQuestion:$('quizQuestion'),
+  quizOptions:$('quizOptions'), quizBadge:$('quizBadge'),
+  successBlock:$('successBlock'), successTitle:$('successTitle'),
+  sIcon:$('sIcon'), sTitle:$('sTitle'), sMessage:$('sMessage'),
+  sRetry:$('sRetry'), sContinue:$('sContinue'),
+  counterCur:$('counterCur'), counterTotal:$('counterTotal'),
+  prevBtn:$('prevBtn'), resetBtn:$('resetBtn'), nextBtn:$('nextBtn'),
+  status:$('status'), statusIcon:$('statusIcon'), statusText:$('statusText'),
+  overlay:$('overlay'), restartBtn:$('restartBtn'),
+  finalTitle:$('finalTitle'), finalText:$('finalText')
+};
+
+let state = {
+  courseId: APP.courses[0].id,
+  lessonIdx: 0,                  // runtime-индекс в текущем курсе
+  progress: {}                   // { [courseId]: { completed:[lessonId], current:lessonId } }
+};
+let quizLocked = false;
+let openCourseId = null;         // какой курс раскрыт в сайдбаре
+
+const curCourse  = () => APP.courses.find(c => c.id === state.courseId) || APP.courses[0];
+const curLesson  = () => curCourse().lessons[state.lessonIdx] || curCourse().lessons[0];
+const curProgress = () => (state.progress[state.courseId] ||= { completed:[], current:null });
+
+/* Проверка и нормализация сохранённого прогресса */
+function normalizeProgress(p){
+  const out = {};
+  if (!p || typeof p !== 'object') return out;
+  Object.keys(p).forEach(cid => {
+    const v = p[cid];
+    if (!v || typeof v !== 'object') return;
+    out[cid] = {
+      completed: Array.isArray(v.completed) ? v.completed.filter(x => typeof x === 'string') : [],
+      current: typeof v.current === 'string' ? v.current : null
+    };
+  });
+  return out;
+}
+
+/* ================== LOCALSTORAGE ================== */
+function saveProgress(){
+  try{
+    localStorage.setItem(APP.storageKey, JSON.stringify({
+      courseId: state.courseId,
+      progress: state.progress
+    }));
+  }catch(e){}
+}
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(APP.storageKey);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearProgress(){ try{ localStorage.removeItem(APP.storageKey); }catch(e){} }
+
+/* ================== УТИЛИТЫ ДЛЯ УРОКА ================== */
+function lessonDone(lesson){
+  return curProgress().completed.includes(lid(state.courseId, lesson));
+}
+function markDone(lesson){
+  const id = lid(state.courseId, lesson);
+  const cp = curProgress();
+  if (!cp.completed.includes(id)) cp.completed.push(id);
+}
+function courseDoneCount(courseId){
+  const c = APP.courses.find(x => x.id === courseId);
+  if (!c) return 0;
+  const p = state.progress[courseId] || { completed:[] };
+  return c.lessons.filter(l => p.completed.includes(lid(courseId, l))).length;
+}
+
+/* ================== SIDEBAR ================== */
+function renderSidebar(){
+  els.sbList.innerHTML = '';
+
+  APP.courses.forEach(course => {
+    const isOpen = openCourseId === course.id;
+    const isActive = course.id === state.courseId;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'sb-course'
+      + (isActive ? ' active' : '')
+      + (isOpen ? ' open' : '');
+
+    // Заголовок курса — клик раскрывает/закрывает список уроков
+    const titleEl = document.createElement('button');
+    titleEl.type = 'button';
+    titleEl.className = 'sb-course-title';
+    titleEl.innerHTML =
+      '<span class="chev">▸</span>' +
+      '<span class="ic">' + escapeHtml(course.icon || '•') + '</span>' +
+      '<span class="ttl">' + escapeHtml(course.title) + '</span>' +
+      '<span class="cnt">' + courseDoneCount(course.id) + '/' + course.lessons.length + '</span>';
+    titleEl.addEventListener('click', () => {
+      // Только один открыт одновременно
+      openCourseId = isOpen ? null : course.id;
+      renderSidebar();
+    });
+    wrap.appendChild(titleEl);
+
+    // Уроки — рендерим только когда курс раскрыт
+    if (isOpen){
+      const lessonsWrap = document.createElement('div');
+      lessonsWrap.className = 'sb-course-lessons';
+
+      course.lessons.forEach((lesson, i) => {
+        const id = lid(course.id, lesson);
+        const cp = state.progress[course.id] || { completed:[], current:null };
+
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'sb-lesson';
+        if (id === cp.current && isActive) b.classList.add('active');
+        if (cp.completed.includes(id)) b.classList.add('done');
+        b.innerHTML =
+          '<span class="num">' + (i+1) + '.</span>' +
+          '<span class="txt">' + escapeHtml(lesson.title) + '</span>';
+
+        b.addEventListener('click', () => {
+          // При смене курса — рендерим заново
+          state.courseId = course.id;
+          openCourseId = course.id;
+          loadLesson(i);
+          closeSidebar();
+        });
+        lessonsWrap.appendChild(b);
+      });
+      wrap.appendChild(lessonsWrap);
+    }
+
+    els.sbList.appendChild(wrap);
+  });
+}
+
+function openSidebar(){
+  if (!openCourseId) openCourseId = state.courseId; // авто-раскрыть текущий курс
+  renderSidebar();
+  els.sidebar.classList.add('open');
+  els.backdrop.classList.add('show');
+}
+function closeSidebar(){
+  els.sidebar.classList.remove('open');
+  els.backdrop.classList.remove('show');
+}
+
+/* ================== HUD ================== */
+function updateHud(){
+  els.counterCur.textContent = state.lessonIdx + 1;
+  els.counterTotal.textContent = curCourse().lessons.length;
+}
+
+/* ================== РЕНДЕР ================== */
+function renderOutput(output, target){
+  if (!output) return;
+  const text = Array.isArray(output) ? output.join('\n') : String(output);
+  const d = document.createElement('div');
+  d.className = 'term-out';
+  d.textContent = text;
+  (target || els.termLog).appendChild(d);
+}
+
+function renderQuiz(lesson){
+  els.quizQuestion.innerHTML = lesson.question || 'Выберите правильный ответ:';
+  els.quizOptions.innerHTML = '';
+  quizLocked = false;
+  (lesson.options || []).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.type = 'button';
+    btn.innerHTML = '<span class="key">' + String.fromCharCode(65+i) + '</span>' +
+                    '<span class="label">' + escapeHtml(opt) + '</span>';
+    btn.addEventListener('click', () => selectQuizOption(i));
+    els.quizOptions.appendChild(btn);
+  });
+}
+
+function clearBadges(){
+  [els.termBadge, els.codeBadge, els.quizBadge].forEach(b => {
+    b.classList.remove('show');
+    b.textContent = '';
+  });
+}
+
+function showBadge(panel){
+  const lesson = curLesson();
+  const L = labels(lesson);
+  const badge = panel === 'code' ? els.codeBadge : panel === 'quiz' ? els.quizBadge : els.termBadge;
+  badge.textContent = L.badge || '✓ Принято';
+  badge.classList.add('show');
+}
+
+/* Полный сброс отображения перед рендером нового урока */
+function resetLessonView(){
+  els.hintLine.textContent = '';
+  els.hintLine.classList.remove('show');
+  clearBadges();
+  hideSuccess();
+
+  // Терминал
+  els.termLog.innerHTML = '';
+  els.termInput.value = '';
+  els.termInput.disabled = false;
+  els.termPanel.classList.remove('success');
+
+  // Код
+  els.codeArea.value = '';
+  els.codeArea.disabled = false;
+  els.codeOut.textContent = '';
+
+  // Викторина
+  els.quizOptions.innerHTML = '';
+  els.quizQuestion.innerHTML = '';
+
+  // Навигация
+  els.nextBtn.disabled = true;
+}
+
+function labels(lesson){
+  return Object.assign({}, APP.defaultLabels, curCourse().labels || {}, lesson.labels || {});
+}
+
+function loadLesson(idx){
+  // Защита от некорректного индекса
+  const lessons = curCourse().lessons;
+  if (!lessons.length) return;
+  idx = Math.max(0, Math.min(idx, lessons.length - 1));
+  state.lessonIdx = idx;
+
+  const lesson = lessons[idx];
+  const L = labels(lesson);
+
+  // Сохраняем текущий урок по ID
+  const cp = curProgress();
+  cp.current = lid(state.courseId, lesson);
+
+  resetLessonView();
+
+  // Заголовки блоков
+  els.hudTitle.textContent = APP.title + ' · ' + curCourse().title;
+  els.infoTitle.textContent = L.info;
+  els.taskTitle.textContent = L.task;
+  els.termTitle.textContent = L.term;
+  els.codeTitle.textContent = L.code;
+  els.quizTitle.textContent = L.quiz;
+  els.successTitle.textContent = L.success;
+
+  // Инфо
+  els.infoBody.innerHTML =
+    '<h2 class="info-title">' + escapeHtml(lesson.title) + '</h2>' +
+    '<div class="info-text">' + lesson.info + '</div>';
+
+  // Задание
+  els.taskText.innerHTML = lesson.task;
+
+  // Показ нужной панели
+  const type = lesson.type || 'terminal';
+  els.termPanel.style.display = type === 'terminal' ? '' : 'none';
+  els.codePanel.style.display = type === 'code' ? '' : 'none';
+  els.quizPanel.style.display = type === 'quiz' ? '' : 'none';
+
+  if (type === 'terminal'){
+    els.cmdTag.textContent = lesson.cmd || '';
+    els.cmdTag.style.display = '';
+  } else if (type === 'code'){
+    els.langTag.textContent = lesson.lang || 'txt';
+    els.codeArea.value = lesson.starter || '';
+    els.codeArea.disabled = false;
+  } else if (type === 'quiz'){
+    renderQuiz(lesson);
+  }
+
+  // HUD
+  updateHud();
+
+  // Навигация
+  els.prevBtn.disabled = idx === 0;
+  const isLast = idx === lessons.length - 1;
+  els.nextBtn.textContent = isLast ? 'Завершить ✓' : 'Далее →';
+
+  // Статус
+  setStatus('', type === 'quiz' ? 'Выберите правильный вариант'
+    : type === 'code' ? 'Напишите код и нажмите «Запустить»'
+    : 'Введи команду и нажми Enter');
+
+  // Если урок уже пройден — показываем бейдж и включаем «Далее»
+  if (lessonDone(lesson)){
+    showBadge(type === 'code' ? 'code' : type === 'quiz' ? 'quiz' : 'terminal');
+    if (type === 'terminal') els.termInput.disabled = true;
+    els.nextBtn.disabled = false;
+  }
+
+  // Фокус и автоскролл
+  if (type === 'terminal'){
+    setTimeout(() => {
+      els.termInput.focus({ preventScroll:true });
+      scrollFieldIntoView(els.termInput);
+    }, 80);
+  } else if (type === 'code'){
+    setTimeout(() => {
+      els.codeArea.focus({ preventScroll:true });
+      scrollFieldIntoView(els.codeArea);
+    }, 80);
+  }
+
+  saveProgress();
+  renderSidebar();
+}
+
+/* Автоскролл к активному полю — чтобы мобильная клавиатура не закрывала его */
+function scrollFieldIntoView(el){
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  if (r.bottom > vh * 0.6){
+    const targetY = window.scrollY + r.top - vh * 0.35;
+    window.scrollTo({ top: Math.max(0, targetY), behavior:'smooth' });
+  }
+}
+
+/* ================== ПРОВЕРКА ОТВЕТА ================== */
+function checkAnswer(lesson, val){
+  const e = lesson.expect || {};
+  if (e.exact !== undefined) return val === e.exact;
+  if (e.startsWith !== undefined) return val.startsWith(e.startsWith);
+  if (e.oneOf !== undefined) return e.oneOf.includes(val);
+  if (e.regex !== undefined) return e.regex.test(val);
+  return false;
+}
+
+function buildPromptHTML(){
+  return '<span class="prompt">user@quest<span class="prompt-path">:~/quest</span><span class="prompt-sign">$</span></span>';
+}
+
+function setStatus(type, text){
+  els.status.className = 'status' + (type ? ' ' + type : '');
+  els.statusIcon.textContent = type === 'ok' ? '✓' : type === 'err' ? '✗' : '›';
+  els.statusText.textContent = text;
+}
+
+function getSuccessConfig(lesson){
+  const s = lesson.success;
+  if (!s) return {};
+  return typeof s === 'string' ? { message: s } : s;
+}
+
+/* ================== ТЕРМИНАЛ ================== */
+function submitTerminal(){
+  const lesson = curLesson();
+  const val = els.termInput.value.trim();
+  if (!val) return;
+
+  const echo = document.createElement('div');
+  echo.className = 'term-row';
+  echo.innerHTML = buildPromptHTML() + '<span class="cmd">' + escapeHtml(val) + '</span>';
+  els.termLog.appendChild(echo);
+  els.termInput.value = '';
+
+  if (checkAnswer(lesson, val)){
+    renderOutput(lesson.output);
+    markDone(lesson);
+    updateHud(); renderSidebar();
+
+    els.termPanel.classList.add('success');
+    els.termInput.disabled = true;
+    showBadge('terminal');
+    setStatus('ok', 'Правильно!');
+    saveProgress();
+    setTimeout(() => showSuccess(lesson), 500);
+  } else {
+    const err = document.createElement('div');
+    err.className = 'term-err';
+    err.textContent = '✗ Команда не распознана. Попробуй ещё раз.';
+    els.termLog.appendChild(err);
+    if (lesson.hint){
+      els.hintLine.innerHTML = '💡 ' + lesson.hint;
+      els.hintLine.classList.add('show');
+    }
+    setStatus('err', 'Не то. Посмотри подсказку.');
+    els.termInput.focus();
+  }
+  els.termBody.scrollTop = els.termBody.scrollHeight;
+}
+
+/* ================== КОД ================== */
+function runCode(){
+  const lesson = curLesson();
+  const code = els.codeArea.value;
+
+  els.codeOut.textContent = '';
+  let output = '';
+
+  if (lesson.run && (lesson.lang === 'js' || !lesson.lang)){
+    const logs = [];
+    const origLog = console.log;
+    try {
+      console.log = (...args) => logs.push(args.map(a => {
+        try { return typeof a === 'object' ? JSON.stringify(a) : String(a); }
+        catch(e){ return String(a); }
+      }).join(' '));
+      new Function(code)();
+      console.log = origLog;
+    } catch(e){
+      console.log = origLog;
+      logs.push('Error: ' + e.message);
+    }
+    output = logs.join('\n');
+  } else {
+    output = Array.isArray(lesson.output) ? lesson.output.join('\n') : (lesson.output || '(нет вывода)');
+  }
+
+  els.codeOut.textContent = output || '(пусто)';
+
+  if (checkAnswer(lesson, code)){
+    markDone(lesson);
+    updateHud(); renderSidebar();
+    showBadge('code');
+    setStatus('ok', 'Код принят!');
+    saveProgress();
+    setTimeout(() => showSuccess(lesson), 500);
+  } else {
+    if (lesson.hint){
+      els.hintLine.innerHTML = '💡 ' + lesson.hint;
+      els.hintLine.classList.add('show');
+    }
+    setStatus('err', 'Код ещё не тот. Посмотри подсказку.');
+  }
+}
+
+/* ================== ВИКТОРИНА ================== */
+function selectQuizOption(optIdx){
+  if (quizLocked) return;
+  const lesson = curLesson();
+  if (lesson.type !== 'quiz') return;
+
+  const buttons = els.quizOptions.querySelectorAll('.quiz-option');
+  const isCorrect = optIdx === lesson.correct;
+
+  if (isCorrect){
+    quizLocked = true;
+    buttons.forEach((b, i) => {
+      b.disabled = true;
+      if (i === lesson.correct) b.classList.add('correct');
+    });
+    markDone(lesson);
+    updateHud(); renderSidebar();
+    showBadge('quiz');
+    setStatus('ok', 'Правильно!');
+    saveProgress();
+    setTimeout(() => showSuccess(lesson), 500);
+  } else {
+    buttons.forEach((b, i) => {
+      b.disabled = true;
+      if (i === lesson.correct) b.classList.add('correct');
+      else if (i === optIdx)   b.classList.add('wrong');
+    });
+    if (lesson.hint){
+      els.hintLine.innerHTML = '💡 ' + lesson.hint;
+      els.hintLine.classList.add('show');
+    }
+    setStatus('err', 'Неверно. Попробуй ещё раз.');
+    setTimeout(() => {
+      buttons.forEach(b => { b.disabled = false; b.classList.remove('correct','wrong'); });
+    }, 1000);
+  }
+}
+
+/* ================== УСПЕХ ================== */
+function showSuccess(lesson){
+  const cfg = getSuccessConfig(lesson);
+  const isLast = state.lessonIdx >= curCourse().lessons.length - 1;
+
+  els.sIcon.textContent = cfg.icon || '✓';
+  els.sTitle.textContent = cfg.title || 'Правильно!';
+  els.sMessage.textContent = cfg.message || 'Отличная работа, двигаемся дальше.';
+  els.sContinue.textContent = cfg.continueText || (isLast ? 'Завершить ✓' : 'Дальше →');
+  els.sRetry.textContent = cfg.retryText || '↻ Повторить';
+
+  els.successBlock.classList.add('show');
+  setTimeout(() => {
+    els.successBlock.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 80);
+}
+function hideSuccess(){ els.successBlock.classList.remove('show'); }
+
+function continueFromSuccess(){
+  hideSuccess();
+  const isLast = state.lessonIdx >= curCourse().lessons.length - 1;
+  if (!isLast){
+    loadLesson(state.lessonIdx + 1);
+  } else {
+    els.finalTitle.textContent = 'Курс пройден!';
+    els.finalText.innerHTML = '«' + escapeHtml(curCourse().title) + '» завершён.<br>Открой меню и выбери следующий.';
+    els.overlay.classList.add('show');
+  }
+}
+function retryFromSuccess(){ hideSuccess(); loadLesson(state.lessonIdx); }
+
+/* ================== КНОПКА ОЧИСТКИ ================== */
+let clearArmed = false;
+let clearTimer = null;
+
+function disarmClear(){
+  clearArmed = false;
+  clearTimeout(clearTimer);
+  els.sbClear.classList.remove('armed');
+  els.sbClear.textContent = '🗑 Очистить все данные';
+}
+
+els.sbClear.addEventListener('click', () => {
+  if (!clearArmed){
+    clearArmed = true;
+    els.sbClear.classList.add('armed');
+    els.sbClear.textContent = '⚠ Нажмите ещё раз для удаления';
+    clearTimer = setTimeout(disarmClear, 4000);
+    return;
+  }
+
+  disarmClear();
+  clearProgress();
+
+  state = {
+    courseId: APP.courses[0].id,
+    lessonIdx: 0,
+    progress: {}
+  };
+  openCourseId = state.courseId;
+
+  els.overlay.classList.remove('show');
+  hideSuccess();
+  loadLesson(0);
+  renderSidebar();
+});
+
+/* ================== СОБЫТИЯ ================== */
+els.menuBtn.addEventListener('click', openSidebar);
+els.sbClose.addEventListener('click', closeSidebar);
+els.backdrop.addEventListener('click', closeSidebar);
+
+els.termInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); submitTerminal(); }
+});
+els.termInput.addEventListener('focus', () => setTimeout(() => scrollFieldIntoView(els.termInput), 300));
+els.codeArea.addEventListener('focus', () => setTimeout(() => scrollFieldIntoView(els.codeArea), 300));
+
+window.addEventListener('resize', () => {
+  const a = document.activeElement;
+  if (a === els.termInput || a === els.codeArea){
+    setTimeout(() => scrollFieldIntoView(a), 50);
+  }
+});
+
+els.runBtn.addEventListener('click', runCode);
+
+els.prevBtn.addEventListener('click', () => {
+  if (state.lessonIdx > 0) loadLesson(state.lessonIdx - 1);
+});
+els.resetBtn.addEventListener('click', () => loadLesson(state.lessonIdx));
+els.nextBtn.addEventListener('click', () => {
+  const isLast = state.lessonIdx >= curCourse().lessons.length - 1;
+  if (!isLast) loadLesson(state.lessonIdx + 1);
+  else els.overlay.classList.add('show');
+});
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && els.termInput.disabled && !els.nextBtn.disabled){
+    els.nextBtn.click();
+  }
+});
+
+els.sContinue.addEventListener('click', continueFromSuccess);
+els.sRetry.addEventListener('click', retryFromSuccess);
+
+els.restartBtn.addEventListener('click', () => {
+  clearProgress();
+  state = { courseId: APP.courses[0].id, lessonIdx: 0, progress: {} };
+  openCourseId = state.courseId;
+  els.overlay.classList.remove('show');
+  loadLesson(0);
+});
+
+/* ================== СТАРТ ================== */
+(function init(){
+  const saved = loadProgress();
+
+  if (saved && typeof saved === 'object'){
+    if (typeof saved.courseId === 'string') state.courseId = saved.courseId;
+    state.progress = normalizeProgress(saved.progress);
+  }
+
+  if (!APP.courses.find(c => c.id === state.courseId)){
+    state.courseId = APP.courses[0].id;
+  }
+
+  // Определяем стартовый индекс по сохранённому ID текущего урока
+  const cp = state.progress[state.courseId];
+  let startIdx = 0;
+  if (cp && cp.current){
+    const found = curCourse().lessons.findIndex(l => lid(state.courseId, l) === cp.current);
+    if (found >= 0) startIdx = found;
+  }
+
+  openCourseId = state.courseId;
+  loadLesson(startIdx);
+})();
+</script>
+
+</body>
+</html>
