@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Terminal Quest — обучение терминалу</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080c; --panel:#0a0e14; --panel-head:#0d1219;
+  --line:#1a2029; --line-2:#242c38;
+  --text:#c9d1d9; --dim:#6e7681;
+  --green:#7ee787; --green-2:#3fb950;
+  --amber:#fbbf24; --red:#ff7b72; --blue:#58a6ff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ============== ОБЩАЯ СТРАНИЦА (скролл разрешён) ============== */
+html{min-height:100%}
+body{
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--bg);color:var(--text);
+  font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(88,166,255,.08),transparent),
+    radial-gradient(ellipse 60% 50% at 50% 120%,rgba(126,231,135,.05),transparent);
+  background-attachment:fixed;
+}
+
+/* ---------- Каркас ---------- */
+.app{
+  display:flex;flex-direction:column;
+  width:100%;max-width:880px;margin:0 auto;
+  padding:0 16px;
+  min-height:100vh;
+  min-height:100dvh;
+}
+
+/* ---------- HUD ---------- */
+.hud{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 4px 12px;border-bottom:1px solid var(--line);
+  gap:16px;flex-shrink:0;
+  position:sticky;top:0;z-index:5;
+  background:linear-gradient(to bottom,var(--bg) 70%,transparent);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.hud-left{display:flex;align-items:center;gap:10px;min-width:0}
+.hud-logo{color:var(--green);font-size:16px;text-shadow:0 0 8px var(--green)}
+.hud-title{font-size:12px;font-weight:700;letter-spacing:.15em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.dots{display:flex;gap:6px;flex-wrap:wrap;max-width:240px}
+.dot{
+  width:8px;height:8px;border-radius:50%;background:var(--line-2);
+  cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s;
+  border:1px solid transparent;flex-shrink:0;
+}
+.dot:hover{transform:scale(1.4)}
+.dot.done{background:var(--green-2);box-shadow:0 0 8px rgba(63,185,80,.6)}
+.dot.active{border-color:var(--amber);box-shadow:0 0 8px var(--amber);transform:scale(1.3)}
+.counter{font-size:12px;color:var(--dim);white-space:nowrap}
+.counter span:first-child{color:var(--text);font-weight:700}
+
+/* ---------- Основная область ---------- */
+.main{
+  flex:1;
+  padding:16px 0;
+  display:flex;flex-direction:column;gap:12px;
+}
+
+/* ---------- Панель ---------- */
+.panel{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.panel-head{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--panel-head);
+  border-bottom:1px solid var(--line);
+}
+.panel-dots{display:flex;gap:5px}
+.panel-dots i{width:10px;height:10px;border-radius:50%;display:block}
+.panel-dots i:nth-child(1){background:#ff5f57}
+.panel-dots i:nth-child(2){background:#febc2e}
+.panel-dots i:nth-child(3){background:#28c840}
+.panel-title{font-size:11px;color:var(--dim);letter-spacing:.05em}
+.panel-tag{
+  margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;
+  background:rgba(88,166,255,.1);color:var(--blue);
+  border:1px solid rgba(88,166,255,.25);
+}
+.panel-body{padding:14px 16px}
+
+/* ---------- Инфо ---------- */
+.info-title{font-size:15px;color:var(--green);margin-bottom:10px;font-weight:700}
+.info-text p{margin-bottom:8px}
+.info-text p:last-child{margin-bottom:0}
+.info-text code{
+  background:rgba(126,231,135,.1);color:var(--green);
+  padding:1px 6px;border-radius:4px;font-size:13px;
+  border:1px solid rgba(126,231,135,.15);
+}
+.info-text i{color:var(--dim)}
+.info-text b{color:var(--amber)}
+.info-text ul{padding-left:20px;margin:8px 0}
+.info-text li{margin-bottom:4px}
+
+/* ---------- Задание ---------- */
+.task-line{display:flex;gap:10px;align-items:flex-start}
+.task-arrow{color:var(--amber);flex-shrink:0}
+.task-line b{color:var(--amber)}
+.hint-line{
+  display:none;margin-top:10px;padding:8px 12px;
+  background:rgba(251,191,36,.08);
+  border-left:2px solid var(--amber);border-radius:4px;
+  font-size:12px;color:var(--amber);
+}
+.hint-line.show{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* ---------- Терминал ---------- */
+.term-panel{transition:box-shadow .3s,border-color .3s}
+.term-panel.success{
+  border-color:rgba(126,231,135,.4);
+  box-shadow:0 0 24px rgba(126,231,135,.15),0 4px 20px rgba(0,0,0,.3);
+}
+.term-body{
+  padding:14px 16px;min-height:150px;max-height:340px;
+  overflow-y:auto;font-size:13.5px;line-height:1.7;
+  scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;
+}
+.term-body::-webkit-scrollbar{width:6px}
+.term-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+
+.term-log{display:flex;flex-direction:column;gap:2px}
+.term-row{display:flex;gap:8px;flex-wrap:wrap;word-break:break-all}
+.term-row .cmd{color:var(--text)}
+.prompt{color:var(--green);font-weight:500;white-space:nowrap}
+.prompt-path{color:var(--blue)}
+.prompt-sign{color:var(--text);margin-left:2px}
+.term-out{color:var(--dim);white-space:pre-wrap;word-break:break-word}
+.term-ok,.term-err{
+  margin-top:6px;padding:6px 10px;border-radius:4px;
+  animation:slideIn .3s ease;font-size:13px;
+}
+.term-ok{
+  color:var(--green);background:rgba(126,231,135,.08);
+  border-left:2px solid var(--green);
+}
+.term-err{
+  color:var(--red);background:rgba(255,123,114,.08);
+  border-left:2px solid var(--red);
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+
+.term-input-line{display:flex;gap:8px;align-items:center;margin-top:4px}
+.term-input-line input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font:inherit;padding:0;
+  caret-color:var(--green);min-width:0;
+}
+.term-input-line input:disabled{color:var(--dim);caret-color:transparent}
+
+/* ---------- Викторина ---------- */
+.quiz-question{
+  font-size:14px;color:var(--text);margin-bottom:12px;
+  font-weight:500;line-height:1.5;
+}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-option{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;background:rgba(255,255,255,.02);
+  border:1px solid var(--line-2);border-radius:6px;
+  cursor:pointer;transition:all .15s;
+  color:var(--text);font:inherit;font-size:13px;
+  text-align:left;width:100%;
+}
+.quiz-option:hover:not(:disabled){
+  border-color:var(--blue);background:rgba(88,166,255,.06);
+}
+.quiz-option:disabled{cursor:default;opacity:.55}
+.quiz-option .key{
+  flex-shrink:0;width:22px;height:22px;
+  display:grid;place-items:center;
+  border-radius:4px;background:var(--line-2);
+  font-size:11px;color:var(--dim);
+  transition:background .2s,color .2s;
+}
+.quiz-option .label{flex:1;line-height:1.4}
+.quiz-option.correct{
+  border-color:var(--green-2);
+  background:rgba(126,231,135,.08);
+  opacity:1;
+}
+.quiz-option.correct .key{background:var(--green-2);color:#000}
+.quiz-option.wrong{
+  border-color:var(--red);
+  background:rgba(255,123,114,.06);
+  opacity:1;
+}
+.quiz-option.wrong .key{background:var(--red);color:#000}
+
+/* ---------- Уведомление об успехе (инлайн, под терминалом) ---------- */
+.success-block{
+  display:none;
+  background:var(--panel);
+  border:1px solid rgba(126,231,135,.4);
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.3), 0 0 24px rgba(126,231,135,.15);
+}
+.success-block.show{display:block;animation:slideDown .35s ease-out}
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:none}
+}
+.success-head{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--panel-head);
+  border-bottom:1px solid rgba(126,231,135,.2);
+}
+.success-head .panel-title{color:var(--green)}
+.success-body{
+  padding:14px 16px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.success-icon{
+  font-size:36px;line-height:1;flex-shrink:0;
+  animation:pop .5s ease-out;
+}
+@keyframes pop{
+  0%{transform:scale(.3);opacity:0}
+  70%{transform:scale(1.15)}
+  100%{transform:scale(1);opacity:1}
+}
+.success-text{flex:1;min-width:180px}
+.success-text h2{
+  color:var(--green);font-size:15px;
+  margin-bottom:4px;font-weight:700;
+}
+.success-text p{
+  color:var(--dim);font-size:13px;line-height:1.5;
+}
+.success-actions{
+  display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;
+}
+
+/* ---------- Футер ---------- */
+.footer{
+  flex-shrink:0;padding:10px 0 16px;
+  border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--bg);
+  position:sticky;bottom:0;z-index:4;
+}
+.status{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--panel);
+  border:1px solid var(--line);border-radius:6px;
+  font-size:12px;min-height:36px;transition:all .2s;
+}
+.status.ok{border-color:rgba(126,231,135,.3);background:rgba(126,231,135,.05)}
+.status.err{border-color:rgba(255,123,114,.3);background:rgba(255,123,114,.05)}
+.status-icon{color:var(--dim);font-weight:700}
+.status-text{color:var(--dim)}
+.status.ok .status-icon,.status.ok .status-text{color:var(--green)}
+.status.err .status-icon,.status.err .status-text{color:var(--red)}
+
+.nav{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;background:var(--panel);
+  border:1px solid var(--line-2);border-radius:6px;
+  color:var(--text);font:inherit;font-size:13px;cursor:pointer;
+  transition:all .15s;
+}
+.btn:hover:not(:disabled){border-color:var(--green-2);color:var(--green)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-primary{
+  background:rgba(126,231,135,.1);
+  border-color:var(--green-2);color:var(--green);
+}
+.btn-primary:hover:not(:disabled){
+  background:rgba(126,231,135,.18);
+  box-shadow:0 0 16px rgba(126,231,135,.25);
+}
+.btn-primary:not(:disabled){animation:pulseGlow 2s infinite}
+@keyframes pulseGlow{
+  0%,100%{box-shadow:0 0 12px rgba(126,231,135,.2)}
+  50%{box-shadow:0 0 20px rgba(126,231,135,.4)}
+}
+
+/* ---------- Финальный оверлей ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(6,8,12,.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:grid;place-items:center;z-index:50;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+  padding:20px;
+}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay-card{
+  background:var(--panel);border:1px solid var(--line-2);
+  border-radius:12px;padding:32px 40px;text-align:center;
+  transform:translateY(10px);transition:transform .3s;
+  max-width:400px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.overlay.show .overlay-card{transform:none}
+.overlay-icon{font-size:48px;margin-bottom:12px;line-height:1}
+.overlay-card h2{color:var(--green);margin-bottom:8px;font-size:20px}
+.overlay-card p{color:var(--dim);margin-bottom:20px;font-size:13px;line-height:1.6}
+
+/* ---------- Адаптив ---------- */
+@media (max-width:600px){
+  .hud{padding:12px 2px 10px}
+  .hud-title{font-size:11px}
+  .dots{max-width:140px;gap:5px}
+  .counter{font-size:11px}
+  .panel-body{padding:12px 14px}
+  .term-body{padding:12px 14px;font-size:13px;max-height:280px}
+  .info-title{font-size:14px}
+  .btn{padding:8px 12px;font-size:12px}
+  .overlay-card{padding:24px 20px}
+  .overlay-icon{font-size:40px}
+  .success-icon{font-size:30px}
+  .success-body{padding:12px 14px;gap:10px}
+  .success-actions{width:100%}
+  .success-actions .btn{flex:1}
+}
+@media (max-width:380px){
+  .dots{display:none}
+  .nav .btn{flex:1 1 auto;min-width:0;padding:8px 8px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="hud">
+    <div class="hud-left">
+      <span class="hud-logo">▸</span>
+      <span class="hud-title">TERMINAL QUEST</span>
+    </div>
+    <div class="hud-right">
+      <div class="dots" id="dots"></div>
+      <div class="counter">
+        <span id="counterCur">1</span>/<span id="counterTotal">8</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <section class="panel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title">info.md</span>
+      </div>
+      <div class="panel-body" id="infoBody"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title">task</span>
+      </div>
+      <div class="panel-body">
+        <div class="task-line">
+          <span class="task-arrow">▸</span>
+          <span id="taskText"></span>
+        </div>
+        <div class="hint-line" id="hintLine"></div>
+      </div>
+    </section>
+
+    <!-- Терминал (для type: 'terminal') -->
+    <section class="panel term-panel" id="termPanel">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title">~/quest — bash</span>
+        <span class="panel-tag" id="cmdTag">ls</span>
+      </div>
+      <div class="panel-body term-body" id="termBody">
+        <div class="term-log" id="termLog"></div>
+        <div class="term-input-line">
+          <span class="prompt">user@quest<span class="prompt-path">:~/quest</span><span class="prompt-sign">$</span></span>
+          <input id="termInput" autocomplete="off" spellcheck="false" autocapitalize="off" autocorrect="off">
+        </div>
+      </div>
+    </section>
+
+    <!-- Викторина (для type: 'quiz') -->
+    <section class="panel" id="quizPanel" style="display:none">
+      <div class="panel-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title">quiz — выбери ответ</span>
+      </div>
+      <div class="panel-body">
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+      </div>
+    </section>
+
+    <!-- Уведомление об успехе (инлайн, под терминалом/викториной) -->
+    <section class="success-block" id="successOverlay">
+      <div class="success-head">
+        <span class="panel-dots"><i></i><i></i><i></i></span>
+        <span class="panel-title">success</span>
+      </div>
+      <div class="success-body">
+        <div class="success-icon" id="sIcon">✓</div>
+        <div class="success-text">
+          <h2 id="sTitle">Правильно!</h2>
+          <p id="sMessage">Отличная работа.</p>
+        </div>
+        <div class="success-actions">
+          <button class="btn" id="sRetry">↻ Повторить</button>
+          <button class="btn btn-primary" id="sContinue">Дальше →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="status" id="status">
+      <span class="status-icon" id="statusIcon">›</span>
+      <span class="status-text" id="statusText">Введи команду и нажми Enter</span>
+    </div>
+    <div class="nav">
+      <button class="btn" id="prevBtn">← Назад</button>
+      <button class="btn" id="resetBtn">↻ Сброс</button>
+      <button class="btn btn-primary" id="nextBtn" disabled>Далее →</button>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Финальный оверлей -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon">🏆</div>
+    <h2>Курс пройден!</h2>
+    <p>Ты освоил базовые команды терминала.<br>Пора двигаться дальше.</p>
+    <button class="btn btn-primary" id="restartBtn">Пройти заново</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   УРОКИ — единственный источник правды.
+
+   ОБЩАЯ СТРУКТУРА УРОКА:
+
+   {
+     type:   'terminal' | 'quiz',    // тип задания
+     title:  'имя — короткое описание',
+     cmd:    'ls',                   // бейдж в шапке терминала (для terminal)
+     info:   `HTML-описание`,
+     task:   'Что нужно сделать',
+     hint:   'подсказка (необязательно)',
+
+     // --- ТОЛЬКО для type:'terminal' ---
+     expect: { exact:'ls' }          // ИЛИ { regex:/.../i }
+                                     // ИЛИ { oneOf:['ls','ls -l'] }
+                                     // ИЛИ { startsWith:'cd ' }
+     output: 'текст\nвывод',         // строка или массив строк — что покажет терминал
+
+     // --- ТОЛЬКО для type:'quiz' ---
+     question: 'Текст вопроса',
+     options:  ['вариант A', 'вариант B', 'вариант C'],
+     correct:  1,                    // индекс правильного ответа (с нуля)
+
+     // --- УВЕДОМЛЕНИЕ ОБ УСПЕХЕ (необязательно, настраивается) ---
+     success: {
+       icon:         '✓',                 // эмодзи/символ
+       title:        'Команда принята!',  // заголовок
+       message:      'Ты успешно…',       // текст
+       continueText: 'Дальше →',          // кнопка перехода
+       retryText:    '↻ Повторить'        // кнопка повтора
+     }
+     // Короткая форма: success: 'текст поздравления'
+   },
+
+   ================================================================ */
+const LESSONS = [
+
+  {
+    type: 'terminal',
+    title: 'ls — что тут у меня?',
+    cmd: 'ls',
+    info: `
+      <p>Команда <code>ls</code> (от англ. <i>list</i>) показывает 
+      содержимое текущей папки — файлы и подпапки.</p>
+      <p>Это самая первая команда, которую стоит запомнить. 
+      Она как «оглянуться по сторонам» в незнакомом месте.</p>
+    `,
+    task: 'Введите команду, которая выведет список файлов в текущей папке.',
+    hint: 'Две буквы, начинается на «L».',
+    expect: { exact: 'ls' },
+    output: [
+      'Documents/   Downloads/   Pictures/',
+      'readme.txt   notes.txt'
+    ],
+    success: {
+      icon: '📂',
+      title: 'Список получен!',
+      message: 'Команда ls вывела содержимое папки. Ты видишь файлы и подпапки рядом с собой.',
+      continueText: 'К pwd →',
+      retryText: '↻ Ещё раз'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'pwd — где я нахожусь?',
+    cmd: 'pwd',
+    info: `
+      <p>Команда <code>pwd</code> (print working directory) показывает 
+      полный путь к текущей папке.</p>
+      <p>Полезно, когда «потерялся» в файловой системе и не понимаешь, 
+      где ты находишься.</p>
+    `,
+    task: 'Узнайте полный путь к текущей папке.',
+    hint: 'Три буквы. Аббревиатура из английских слов.',
+    expect: { exact: 'pwd' },
+    output: '/home/user/quest',
+    success: {
+      icon: '📍',
+      title: 'Путь найден',
+      message: 'Ты находишься в /home/user/quest — это рабочая папка квеста.',
+      continueText: 'К cd →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'cd — переход в папку',
+    cmd: 'cd',
+    info: `
+      <p>Команда <code>cd</code> (change directory) переходит 
+      в указанную папку.</p>
+      <p>Синтаксис: <code>cd имя_папки</code></p>
+      <p>Особый случай: <code>cd ..</code> — перейти на уровень выше.</p>
+    `,
+    task: 'Перейдите в папку <b>Documents</b>.',
+    hint: 'cd Documents — не забудь пробел между командой и именем.',
+    expect: { regex: /^cd\s+Documents$/i },
+    output: 'user@quest:~/quest/Documents$',
+    success: {
+      icon: '🚪',
+      title: 'Ты внутри Documents',
+      message: 'cd без вывода — это нормально. Команда просто меняет текущую папку, а не выводит текст.',
+      continueText: 'К mkdir →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'mkdir — создать папку',
+    cmd: 'mkdir',
+    info: `
+      <p>Команда <code>mkdir</code> (make directory) создаёт новую папку.</p>
+      <p>Синтаксис: <code>mkdir имя_папки</code></p>
+    `,
+    task: 'Создайте папку с именем <b>projects</b>.',
+    hint: 'mkdir projects',
+    expect: { regex: /^mkdir\s+projects$/i },
+    output: '✓ Папка projects создана',
+    success: {
+      icon: '📁',
+      title: 'Папка создана!',
+      message: 'mkdir projects — теперь в текущей директории появилась новая папка.',
+      continueText: 'К touch →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'touch — создать файл',
+    cmd: 'touch',
+    info: `
+      <p>Команда <code>touch</code> создаёт пустой файл с указанным именем.</p>
+      <p>Если файл уже существует — просто обновляет время его изменения.</p>
+    `,
+    task: 'Создайте пустой файл <b>notes.txt</b>.',
+    hint: 'touch notes.txt',
+    expect: { regex: /^touch\s+notes\.txt$/i },
+    output: '✓ Файл notes.txt создан (0 байт)',
+    success: {
+      icon: '📄',
+      title: 'Файл готов',
+      message: 'touch notes.txt — пустой файл появился в папке.',
+      continueText: 'К echo →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'echo — вывести текст',
+    cmd: 'echo',
+    info: `
+      <p>Команда <code>echo</code> выводит текст на экран.</p>
+      <p>С помощью <code>&gt;</code> можно записать текст в файл: 
+      <code>echo "Hi" &gt; file.txt</code></p>
+    `,
+    task: 'Выведите на экран слово <b>Hello</b>.',
+    hint: 'echo Hello',
+    expect: { regex: /^echo\s+["']?Hello["']?$/i },
+    output: 'Hello',
+    success: {
+      icon: '🔊',
+      title: 'Эхо услышано',
+      message: 'echo повторяет то, что ты сказал — и это первый шаг к записи в файлы.',
+      continueText: 'К cat →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'cat — показать содержимое',
+    cmd: 'cat',
+    info: `
+      <p>Команда <code>cat</code> (concatenate) показывает содержимое 
+      файла прямо в терминале.</p>
+      <p>Синтаксис: <code>cat имя_файла</code></p>
+    `,
+    task: 'Покажите содержимое файла <b>readme.txt</b>.',
+    hint: 'cat readme.txt',
+    expect: { regex: /^cat\s+readme\.txt$/i },
+    output: 'Welcome to Terminal Quest!\nУдачи в приключении.',
+    success: {
+      icon: '📖',
+      title: 'Файл прочитан',
+      message: 'Так читают небольшие текстовые файлы прямо из терминала.',
+      continueText: 'К rm →'
+    }
+  },
+
+  {
+    type: 'terminal',
+    title: 'rm — удалить файл',
+    cmd: 'rm',
+    info: `
+      <p>Команда <code>rm</code> (от англ. <i>remove</i>) удаляет файлы.</p>
+      <p><b>Осторожно:</b> в терминале нет «корзины» — 
+      удалённое не вернуть.</p>
+    `,
+    task: 'Удалите файл <b>notes.txt</b>.',
+    hint: 'rm notes.txt',
+    expect: { regex: /^rm\s+notes\.txt$/i },
+    output: '✓ notes.txt удалён',
+    success: {
+      icon: '🗑️',
+      title: 'Удалено',
+      message: 'Файл исчез. Помни: с rm шутки плохи — отменить нельзя.',
+      continueText: 'К викторине →'
+    }
+  },
+
+  /* ---------- ВИКТОРИНА ---------- */
+  {
+    type: 'quiz',
+    title: 'Проверка: ls и pwd',
+    cmd: 'quiz',
+    info: `
+      <p>Небольшая проверка знаний. Выбери правильный ответ — 
+      игра запомнит результат.</p>
+      <p>Вопросов немного, но они закрепляют материал.</p>
+    `,
+    task: 'Выберите правильный вариант ответа.',
+    question: 'Что выведет команда <b>pwd</b>?',
+    options: [
+      'Список файлов в папке',
+      'Полный путь к текущей папке',
+      'Содержимое файла readme.txt',
+      'Создаст новую папку'
+    ],
+    correct: 1,
+    hint: 'pwd = print working directory',
+    success: {
+      icon: '🧠',
+      title: 'Верный ответ!',
+      message: 'pwd показывает, где ты находишься в файловой системе.',
+      continueText: 'Дальше →'
+    }
+  },
+
+  {
+    type: 'quiz',
+    title: 'Проверка: cd и mkdir',
+    cmd: 'quiz',
+    info: `
+      <p>Ещё одна короткая проверка. Убедимся, что команды 
+      запомнились правильно.</p>
+    `,
+    task: 'Выберите правильный вариант ответа.',
+    question: 'Какая команда создаёт новую папку?',
+    options: [
+      'cd имя',
+      'new имя',
+      'mkdir имя',
+      'touch имя'
+    ],
+    correct: 2,
+    hint: 'mk — от слова make, dir — directory.',
+    success: {
+      icon: '🏗️',
+      title: 'Точно!',
+      message: 'mkdir (make directory) — так создают папки.',
+      continueText: 'Завершить ✓'
+    }
+  }
+
+  /* ────────────────────────────────────────────────────────────
+     ДОБАВЛЯЙ СВОИ УРОКИ ЗДЕСЬ по шаблону выше.
+
+     Пример: команда cp с посимвольным выводом
+
+  ,{
+    type: 'terminal',
+    title: 'cp — копирование',
+    cmd: 'cp',
+    info: '<p>Команда <code>cp</code> копирует файлы.</p>',
+    task: 'Скопируйте readme.txt в readme.bak',
+    hint: 'cp readme.txt readme.bak',
+    expect: { regex: /^cp\\s+readme\\.txt\\s+readme\\.bak$/i },
+    output: ['✓ readme.txt → readme.bak'],
+    success: {
+      icon: '📑',
+      title: 'Копия создана',
+      message: 'Файл readme.bak теперь существует рядом с оригиналом.',
+      continueText: 'Дальше →'
+    }
+  }
+
+     Пример: викторина с несколькими вариантами
+
+  ,{
+    type: 'quiz',
+    title: 'Проверка: rm',
+    cmd: 'quiz',
+    info: '<p>Вспомним rm.</p>',
+    task: 'Выберите правильный вариант.',
+    question: 'Что делает rm file.txt?',
+    options: ['Создаёт file.txt','Показывает file.txt','Удаляет file.txt'],
+    correct: 2
+  }
+     ──────────────────────────────────────────────────────────── */
+];
+
+/* ================== СОСТОЯНИЕ ================== */
+const STORAGE_KEY = 'terminal-quest-v1';
+let currentLesson = 0;
+let completed = new Set();
+let quizLocked = false;
+
+const $ = id => document.getElementById(id);
+const els = {
+  infoBody: $('infoBody'),
+  taskText: $('taskText'),
+  hintLine: $('hintLine'),
+  termPanel: $('termPanel'),
+  termLog: $('termLog'),
+  termBody: $('termBody'),
+  termInput: $('termInput'),
+  cmdTag: $('cmdTag'),
+  quizPanel: $('quizPanel'),
+  quizQuestion: $('quizQuestion'),
+  quizOptions: $('quizOptions'),
+  dots: $('dots'),
+  counterCur: $('counterCur'),
+  counterTotal: $('counterTotal'),
+  prevBtn: $('prevBtn'),
+  resetBtn: $('resetBtn'),
+  nextBtn: $('nextBtn'),
+  status: $('status'),
+  statusIcon: $('statusIcon'),
+  statusText: $('statusText'),
+  overlay: $('overlay'),
+  restartBtn: $('restartBtn'),
+  // success block (теперь инлайн)
+  successOverlay: $('successOverlay'),
+  sIcon: $('sIcon'),
+  sTitle: $('sTitle'),
+  sMessage: $('sMessage'),
+  sRetry: $('sRetry'),
+  sContinue: $('sContinue')
+};
+
+/* ================== УТИЛИТЫ ================== */
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+}
+
+function checkAnswer(lesson, val){
+  const e = lesson.expect || {};
+  if (e.exact      !== undefined) return val === e.exact;
+  if (e.startsWith !== undefined) return val.startsWith(e.startsWith);
+  if (e.oneOf      !== undefined) return e.oneOf.includes(val);
+  if (e.regex      !== undefined) return e.regex.test(val);
+  return false;
+}
+
+function buildPromptHTML(){
+  return '<span class="prompt">user@quest' +
+         '<span class="prompt-path">:~/quest</span>' +
+         '<span class="prompt-sign">$</span></span>';
+}
+
+function setStatus(type, text){
+  els.status.className = 'status' + (type ? ' ' + type : '');
+  els.statusIcon.textContent = type === 'ok' ? '✓' : type === 'err' ? '✗' : '›';
+  els.statusText.textContent = text;
+}
+
+/* Нормализуем success-конфиг: строка → объект */
+function getSuccessConfig(lesson){
+  const s = lesson.success;
+  if (!s) return {};
+  if (typeof s === 'string') return { message: s };
+  return s;
+}
+
+/* ================== LOCALSTORAGE ================== */
+function saveProgress(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      completed: Array.from(completed),
+      current: currentLesson
+    }));
+  }catch(e){ /* приватный режим / нет места — игнорируем */ }
+}
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+
+function clearProgress(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+}
+
+/* ================== РЕНДЕР ================== */
+function renderDots(){
+  els.dots.innerHTML = '';
+  LESSONS.forEach((l, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    if (completed.has(i)) d.classList.add('done');
+    if (i === currentLesson) d.classList.add('active');
+    d.title = l.title;
+    d.addEventListener('click', () => loadLesson(i));
+    els.dots.appendChild(d);
+  });
+}
+
+function renderOutput(output){
+  if (!output) return;
+  const text = Array.isArray(output) ? output.join('\n') : String(output);
+  const d = document.createElement('div');
+  d.className = 'term-out';
+  d.textContent = text;
+  els.termLog.appendChild(d);
+}
+
+function renderQuiz(lesson){
+  els.quizQuestion.innerHTML = lesson.question || 'Выберите правильный ответ:';
+  els.quizOptions.innerHTML = '';
+  quizLocked = false;
+
+  (lesson.options || []).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.type = 'button';
+    btn.innerHTML =
+      '<span class="key">' + String.fromCharCode(65 + i) + '</span>' +
+      '<span class="label">' + escapeHtml(opt) + '</span>';
+    btn.addEventListener('click', () => selectQuizOption(i));
+    els.quizOptions.appendChild(btn);
+  });
+}
+
+function loadLesson(idx){
+  currentLesson = idx;
+  const lesson = LESSONS[idx];
+
+  // Скрыть блок успеха от предыдущего уровня
+  hideSuccess();
+
+  // Инфо
+  els.infoBody.innerHTML =
+    '<h2 class="info-title">' + escapeHtml(lesson.title) + '</h2>' +
+    '<div class="info-text">' + lesson.info + '</div>';
+
+  // Задание
+  els.taskText.innerHTML = lesson.task;
+  els.hintLine.textContent = '';
+  els.hintLine.classList.remove('show');
+
+  // Терминал и викторина — показываем только нужный
+  const isTerminal = lesson.type !== 'quiz';
+  const isQuiz     = lesson.type === 'quiz';
+
+  els.termPanel.style.display = isTerminal ? '' : 'none';
+  els.quizPanel.style.display = isQuiz ? '' : 'none';
+
+  if (isTerminal){
+    els.cmdTag.textContent = lesson.cmd || '';
+    els.termLog.innerHTML = '';
+    els.termInput.value = '';
+    els.termInput.disabled = false;
+    els.termPanel.classList.remove('success');
+  } else {
+    renderQuiz(lesson);
+  }
+
+  // HUD
+  renderDots();
+  els.counterCur.textContent = idx + 1;
+  els.counterTotal.textContent = LESSONS.length;
+
+  // Навигация
+  els.prevBtn.disabled = idx === 0;
+  els.nextBtn.disabled = true;
+  els.nextBtn.textContent = idx === LESSONS.length - 1 ? 'Завершить ✓' : 'Далее →';
+
+  // Статус
+  setStatus('', isQuiz
+    ? 'Выберите правильный вариант'
+    : 'Введи команду и нажми Enter');
+
+  // Фокус
+  if (isTerminal){
+    setTimeout(() => els.termInput.focus(), 60);
+  }
+
+  saveProgress();
+}
+
+/* ================== ОТПРАВКА (терминал) ================== */
+function submitTerminal(){
+  const lesson = LESSONS[currentLesson];
+  const val = els.termInput.value.trim();
+  if (!val) return;
+
+  const echo = document.createElement('div');
+  echo.className = 'term-row';
+  echo.innerHTML = buildPromptHTML() +
+                   '<span class="cmd">' + escapeHtml(val) + '</span>';
+  els.termLog.appendChild(echo);
+  els.termInput.value = '';
+
+  const ok = checkAnswer(lesson, val);
+
+  if (ok){
+    renderOutput(lesson.output);
+
+    const msg = document.createElement('div');
+    msg.className = 'term-ok';
+    msg.textContent = '✓ Команда принята';
+    els.termLog.appendChild(msg);
+
+    completed.add(currentLesson);
+    renderDots();
+
+    els.termPanel.classList.add('success');
+    els.termInput.disabled = true;
+    setStatus('ok', 'Правильно! Идём дальше.');
+    saveProgress();
+
+    // Показываем кастомное уведомление через паузу
+    setTimeout(() => showSuccess(lesson), 550);
+  } else {
+    const err = document.createElement('div');
+    err.className = 'term-err';
+    err.textContent = '✗ Команда не распознана. Попробуй ещё раз.';
+    els.termLog.appendChild(err);
+
+    if (lesson.hint){
+      els.hintLine.innerHTML = '💡 ' + lesson.hint;
+      els.hintLine.classList.add('show');
+    }
+    setStatus('err', 'Не то. Посмотри подсказку под заданием.');
+    els.termInput.focus();
+  }
+
+  els.termBody.scrollTop = els.termBody.scrollHeight;
+}
+
+/* ================== ВЫБОР В ВИКТОРИНЕ ================== */
+function selectQuizOption(optIdx){
+  if (quizLocked) return;
+  const lesson = LESSONS[currentLesson];
+  if (lesson.type !== 'quiz') return;
+
+  const buttons = els.quizOptions.querySelectorAll('.quiz-option');
+  const isCorrect = optIdx === lesson.correct;
+
+  if (isCorrect){
+    quizLocked = true;
+    buttons.forEach((b, i) => {
+      b.disabled = true;
+      if (i === lesson.correct) b.classList.add('correct');
+    });
+
+    completed.add(currentLesson);
+    renderDots();
+    setStatus('ok', 'Правильно! Идём дальше.');
+    saveProgress();
+
+    setTimeout(() => showSuccess(lesson), 550);
+  } else {
+    // Подсветить неверный и правильный на короткое время
+    buttons.forEach((b, i) => {
+      b.disabled = true;
+      if (i === lesson.correct) b.classList.add('correct');
+      else if (i === optIdx)   b.classList.add('wrong');
+    });
+
+    if (lesson.hint){
+      els.hintLine.innerHTML = '💡 ' + lesson.hint;
+      els.hintLine.classList.add('show');
+    }
+    setStatus('err', 'Неверно. Попробуй ещё раз.');
+
+    setTimeout(() => {
+      buttons.forEach(b => {
+        b.disabled = false;
+        b.classList.remove('correct','wrong');
+      });
+    }, 1000);
+  }
+}
+
+/* ================== УВЕДОМЛЕНИЕ ОБ УСПЕХЕ (инлайн) ================== */
+function showSuccess(lesson){
+  const cfg = getSuccessConfig(lesson);
+  const isLast = currentLesson >= LESSONS.length - 1;
+
+  els.sIcon.textContent  = cfg.icon   || '✓';
+  els.sTitle.textContent = cfg.title  || 'Правильно!';
+  els.sMessage.textContent = cfg.message || 'Отличная работа, двигаемся дальше.';
+  els.sContinue.textContent = cfg.continueText || (isLast ? 'Завершить ✓' : 'Дальше →');
+  els.sRetry.textContent    = cfg.retryText    || '↻ Повторить';
+
+  els.successOverlay.classList.add('show');
+
+  // Плавно прокручиваем страницу к блоку успеха
+  setTimeout(() => {
+    els.successOverlay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    els.sContinue.focus({ preventScroll: true });
+  }, 80);
+}
+
+function hideSuccess(){
+  els.successOverlay.classList.remove('show');
+}
+
+function continueFromSuccess(){
+  hideSuccess();
+  if (currentLesson < LESSONS.length - 1){
+    loadLesson(currentLesson + 1);
+  } else {
+    els.overlay.classList.add('show');
+  }
+}
+
+function retryFromSuccess(){
+  hideSuccess();
+  loadLesson(currentLesson);
+}
+
+/* ================== СОБЫТИЯ ================== */
+els.termInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); submitTerminal(); }
+});
+
+els.prevBtn.addEventListener('click', () => {
+  if (currentLesson > 0) loadLesson(currentLesson - 1);
+});
+
+els.resetBtn.addEventListener('click', () => loadLesson(currentLesson));
+
+els.nextBtn.addEventListener('click', () => {
+  if (currentLesson < LESSONS.length - 1){
+    loadLesson(currentLesson + 1);
+  } else {
+    els.overlay.classList.add('show');
+  }
+});
+
+// Enter вне поля ввода = «Далее» после успеха
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && els.termInput.disabled && !els.nextBtn.disabled){
+    els.nextBtn.click();
+  }
+});
+
+// Кнопки в блоке успеха
+els.sContinue.addEventListener('click', continueFromSuccess);
+els.sRetry.addEventListener('click', retryFromSuccess);
+
+// Перезапуск курса
+els.restartBtn.addEventListener('click', () => {
+  completed.clear();
+  clearProgress();
+  els.overlay.classList.remove('show');
+  loadLesson(0);
+});
+
+/* ================== СТАРТ ================== */
+(function init(){
+  const saved = loadProgress();
+  let startIdx = 0;
+
+  if (saved){
+    if (Array.isArray(saved.completed)){
+      saved.completed.forEach(i => {
+        if (typeof i === 'number' && i >= 0 && i < LESSONS.length){
+          completed.add(i);
+        }
+      });
+    }
+    if (typeof saved.current === 'number'
+        && saved.current >= 0
+        && saved.current < LESSONS.length){
+      startIdx = saved.current;
+    }
+  }
+
+  loadLesson(startIdx);
+})();
+</script>
+
+</body>
+</html>
