@@ -979,7 +979,7 @@ function submitTerminal(){
 
     els.termPanel.classList.add('success');
     els.termInput.disabled = true;
-    setStatus('ok', 'Правильно! Смотри блок ниже.');
+    setStatus('ok', 'Правильно! Идём дальше.');
     saveProgress();
 
     // Показываем кастомное уведомление через паузу
@@ -1019,7 +1019,7 @@ function selectQuizOption(optIdx){
 
     completed.add(currentLesson);
     renderDots();
-    setStatus('ok', 'Правильно! Смотри блок ниже.');
+    setStatus('ok', 'Правильно! Идём дальше.');
     saveProgress();
 
     setTimeout(() => showSuccess(lesson), 550);
