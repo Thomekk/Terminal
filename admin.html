@@ -170,6 +170,21 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .sb-lesson.active{color:var(--green);border-left-color:var(--green);background:rgba(126,231,135,.05)}
 .sb-lesson .num{color:var(--dim);font-size:10px;flex-shrink:0}
 .sb-lesson .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+
+/* -------- кнопка «вставить урок между» -------- */
+.sb-insert{
+  display:flex;align-items:center;gap:8px;
+  width:100%;height:14px;padding:0 16px 0 30px;
+  font-size:10px;color:var(--line-2);background:none;border:none;
+  cursor:pointer;transition:all .12s;font-family:inherit;
+}
+.sb-insert::before,.sb-insert::after{
+  content:'';flex:1;height:1px;background:currentColor;
+  transition:background .12s;
+}
+.sb-insert:hover{color:var(--green);height:18px}
+.sb-insert:hover::before,.sb-insert:hover::after{background:var(--green-2)}
+
 .sb-foot{border-top:1px solid var(--line);padding:10px 12px;background:var(--panel-head)}
 .sb-link{
   display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:var(--text);
@@ -263,7 +278,7 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
   </div>
   <div class="sb-list" id="sbList"></div>
   <div class="sb-foot">
-    <a class="sb-link" href="index.html" target="_blank" rel="noopener">
+    <a class="sb-link" href="/" target="_blank" rel="noopener">
       <span class="ic">👁</span>
       <span class="tx"><b>Открыть страницу квестов</b><i>Предпросмотр результата</i></span>
     </a>
@@ -599,13 +614,31 @@ function renderSidebar(){
                      '<span class="cnt">' + c.lessons.length + '</span>';
     head.onclick = () => { cur = { c: ci, l: 0 }; render(); closeSidebar(); };
     wrap.appendChild(head);
+
     c.lessons.forEach((l, li) => {
+      // кнопка «вставить перед этим уроком»
+      const ins = el('button','sb-insert');
+      ins.type = 'button';
+      ins.textContent = '＋';
+      ins.title = 'Вставить урок сюда (перед этим)';
+      ins.onclick = (e) => { e.stopPropagation(); addLesson(c, li); };
+      wrap.appendChild(ins);
+
       const b = el('button','sb-lesson' + (ci === cur.c && li === cur.l ? ' active' : ''));
       b.type = 'button';
       b.innerHTML = '<span class="num">' + (li+1) + '.</span><span class="txt">' + esc(l.title || 'Без названия') + '</span>';
       b.onclick = () => { cur = { c: ci, l: li }; render(); closeSidebar(); };
       wrap.appendChild(b);
     });
+
+    // кнопка «вставить в конец»
+    const insEnd = el('button','sb-insert');
+    insEnd.type = 'button';
+    insEnd.textContent = '＋';
+    insEnd.title = 'Добавить урок в конец';
+    insEnd.onclick = (e) => { e.stopPropagation(); addLesson(c); };
+    wrap.appendChild(insEnd);
+
     list.appendChild(wrap);
   });
 }
@@ -681,6 +714,8 @@ function renderLesson(M, c, l){
     btn('↑', 'icon', () => moveLesson(c, cur.l, -1)),
     btn('↓', 'icon', () => moveLesson(c, cur.l, 1)),
     btn('⧉', 'icon', () => dupLesson(c, cur.l)),
+    btn('＋ перед', 'sm', () => addLesson(c, cur.l)),
+    btn('＋ после', 'sm', () => addLesson(c, cur.l + 1)),
     btn('✕ Удалить урок', 'danger sm', () => delLesson(c, cur.l))
   );
   nav.body.appendChild(acts);
@@ -842,10 +877,12 @@ function dupCourse(){
   persist(); render();
   toast('⧉ Курс скопирован');
 }
-function addLesson(c){
+function addLesson(c, at){
+  if (at === undefined || at === null) at = c.lessons.length;
+  at = Math.max(0, Math.min(at, c.lessons.length));
   const allIds = c.lessons.map(l => l.id);
   const id = uniqueId(c.id + '-lesson', allIds);
-  c.lessons.push({
+  c.lessons.splice(at, 0, {
     id, type:'quiz', title:'Новый урок',
     info:'<p>Описание урока.</p>',
     task:'Выбери правильный ответ.',
@@ -854,9 +891,9 @@ function addLesson(c){
     correct:0, hint:'',
     success:{ icon:'✓', title:'Верно!', message:'Молодец.', continueText:'Дальше →' }
   });
-  cur.l = c.lessons.length - 1;
+  cur = { c: DATA.courses.indexOf(c), l: at };
   persist(); render();
-  toast('＋ Урок добавлен');
+  toast(at < c.lessons.length - 1 ? '＋ Урок вставлен на позицию ' + (at + 1) : '＋ Урок добавлен');
 }
 function dupLesson(c, i){
   const l = c.lessons[i];
