@@ -1,0 +1,536 @@
+{
+  "version": 1,
+  "title": "КВЕСТ",
+  "defaultLabels": {
+    "info": "Информация",
+    "task": "Задание",
+    "term": "Терминал",
+    "quiz": "Викторина",
+    "code": "Код",
+    "success": "Результат",
+    "badge": "✓ Принято"
+  },
+  "courses": [
+    {
+      "id": "terminal",
+      "title": "Терминал",
+      "icon": ">_",
+      "lessons": [
+        {
+          "id": "term-intro-1",
+          "type": "quiz",
+          "title": "🎬 Что такое терминал?",
+          "info": "<p><b>Терминал</b> — это текстовый интерфейс, который позволяет напрямую управлять компьютером с помощью <b>текстовых команд</b>.</p><p>Вместо кликов по иконкам ты пишешь команды: <code>ls</code>, <code>cd</code>, <code>pwd</code> и тд. Компьютер отвечает текстом.</p><p>Сначала кажется, что это сложнее мышки. Но на деле — <b>быстрее, точнее и мощнее</b>. Одна строка может сделать работу сотни кликов.</p>",
+          "task": "Проверим твои знания. Выбери правильный ответ ниже.",
+          "question": "Что такое <b>терминал</b>?",
+          "options": [
+            "Программа для просмотра видео",
+            "Игра, где нужно кликать мышкой",
+            "Текстовое окно, где ты пишешь команды для компьютера",
+            "Место, где хранятся все твои файлы"
+          ],
+          "correct": 2,
+          "hint": "Терминал — там, где ты вводишь текст, а не кликаешь.",
+          "success": { "icon": "🎬", "title": "Отлично!", "message": "Терминал — это диалог с компьютером на языке команд.", "continueText": "К уроку о Linux →" }
+        },
+        {
+          "id": "term-intro-2",
+          "type": "quiz",
+          "title": "🐧 Что такое Linux?",
+          "info": "<p><b>Linux</b> — это семейство операционных систем. Они похожи на Windows или macOS, но <b>бесплатные, открытые и управляют серверами по всему миру</b>.</p><p>Почти все сайты, приложения и суперкомпьютеры работают на Linux. Даже Android построен на его основе!</p><p>У Linux много «версий» — их называют <b>дистрибутивами</b>: Ubuntu, Debian, Fedora, Arch. Базовые команды ты выучишь один раз — и они будут работать практически везде.</p>",
+          "task": "Выбери правильный ответ ниже.",
+          "question": "Что такое <b>Linux</b>?",
+          "options": [
+            "Операционная система с открытым кодом",
+            "Игра для телефона",
+            "Компания, которая делает компьютеры",
+            "Язык программирования"
+          ],
+          "correct": 0,
+          "hint": "Linux — семейство операционных систем.",
+          "success": { "icon": "🐧", "title": "Точно!", "message": "Linux — открытая ОС, на которой стоит весь интернет.", "continueText": "К устройству команды →" }
+        },
+        {
+          "id": "term-intro-3",
+          "type": "quiz",
+          "title": "🧩 Как устроена команда",
+          "info": "<p>Команда в терминале — это как <b>предложение из трёх частей</b>:</p><ul><li><b>Имя команды</b> — что делать. Например, <code>ls</code>.</li><li><b>Флаги</b> — как именно делать: <code>-a</code>, <code>-l</code>, <code>-h</code>.</li><li><b>Аргументы</b> — с чем работать: <code>Documents</code>, <code>notes.txt</code>.</li></ul><p>Пример: <code>ls -l Documents</code> — «покажи, подробно, содержимое папки».</p>",
+          "task": "Проверим! Выбери правильный ответ.",
+          "question": "В команде <b>ls -l Documents</b> что означает <b>-l</b>?",
+          "options": ["Имя файла", "Флаг — как именно выполнить команду", "Пароль пользователя", "Название программы"],
+          "correct": 1,
+          "hint": "Дефис в начале всегда означает флаг.",
+          "success": { "icon": "🧩", "title": "Разобрались!", "message": "Команда + флаги + аргументы — структура любой команды.", "continueText": "К приглашению →" }
+        },
+        {
+          "id": "term-intro-4",
+          "type": "quiz",
+          "title": "💬 Приглашение и команды",
+          "info": "<p>Когда ты открываешь терминал, ты видишь строку вроде этой:</p><p><code>user@quest:~/quest$</code></p><p>Это <b>приглашение</b> (prompt): <b>user</b> — кто ты, <b>quest</b> — на каком компьютере, <b>~/quest</b> — где ты сейчас, <b>$</b> — знак готовности.</p><p><b>Как запустить команду?</b> Набери её текст и нажми <b>Enter</b>. Прервать процесс — <b>Ctrl+C</b>.</p>",
+          "task": "Финальная проверка перед первой командой.",
+          "question": "Как <b>запустить</b> написанную команду в терминале?",
+          "options": ["Кликнуть по ней мышкой", "Нажать Enter", "Подождать 10 секунд", "Сказать «пожалуйста»"],
+          "correct": 1,
+          "hint": "Команды в терминале запускает клавиша ввода.",
+          "success": { "icon": "💬", "title": "Вперёд к первой команде!", "message": "Теперь ты знаешь, что такое терминал, Linux, команда и приглашение. Поехали! 🚀", "continueText": "К ls →" }
+        },
+        {
+          "id": "term-ls-1",
+          "type": "terminal",
+          "title": "ls — что в папке?",
+          "cmd": "ls",
+          "info": "<p>🔸 Начнем с первой команды!</p><p><code>ls</code> (от англ. <i>list</i>) — выводит список файлов и папок в текущем каталоге.</p><p>Если запустить её просто так, без аргументов и флагов, она покажет всё, кроме скрытых файлов.</p>",
+          "task": "Выведите содержимое текущей папки.",
+          "hint": "Команда из двух букв: l и s.",
+          "expect": { "exact": "ls" },
+          "output": ["Documents/  Downloads/  Pictures/", "readme.txt  notes.txt  script.sh"],
+          "success": { "icon": "📂", "title": "Готово!", "message": "ls показал обычные файлы и папки.", "continueText": "К ls -a →" }
+        },
+        {
+          "id": "term-ls-a",
+          "type": "terminal",
+          "title": "ls -a — показать скрытое",
+          "cmd": "ls -a",
+          "info": "<p>Флаг <code>-a</code> (all) показывает <b>все</b> файлы, включая скрытые.</p><p>Скрытые файлы начинаются с точки: <code>.bashrc</code>, <code>.gitignore</code>.</p><p>Также показываются <code>.</code> (текущая) и <code>..</code> (родительская) папки.</p>",
+          "task": "Покажите все файлы, включая скрытые.",
+          "hint": "ls -a — пробел и дефис обязательны.",
+          "expect": { "exact": "ls -a" },
+          "output": [".  ..  .bashrc  .gitignore  Documents/  readme.txt"],
+          "success": { "icon": "👁️", "title": "Скрытое видно!", "message": "Точка в начале имени делает файл скрытым.", "continueText": "К ls -l →" }
+        },
+        {
+          "id": "term-ls-l",
+          "type": "terminal",
+          "title": "ls -l — подробный список",
+          "cmd": "ls -l",
+          "info": "<p>Флаг <code>-l</code> (long) показывает <b>подробный</b> список: права доступа, владельца, размер, дату и имя.</p>",
+          "task": "Покажите подробный список файлов.",
+          "hint": "Буква l (эл), не путай с цифрой 1.",
+          "expect": { "exact": "ls -l" },
+          "output": ["-rw-r--r-- 1 user user  220 Jan 15 10:24 readme.txt", "drwxr-xr-x 2 user user 4096 Jan 14 09:10 Documents/"],
+          "success": { "icon": "📋", "title": "Длинный формат", "message": "Так выглядит классический вывод ls -l.", "continueText": "К ls -la →" }
+        },
+        {
+          "id": "term-ls-la",
+          "type": "terminal",
+          "title": "ls -la — флаги вместе",
+          "cmd": "ls -la",
+          "info": "<p>Флаги можно <b>объединять</b>: <code>ls -la</code> = <code>ls -l -a</code>.</p><p>Один дефис и подряд идущие буквы — обычная практика в UNIX.</p>",
+          "task": "Покажите подробный список, включая скрытые файлы.",
+          "hint": "ls -la или ls -al — оба работают.",
+          "expect": { "oneOf": ["ls -la", "ls -al"] },
+          "output": ["drwxr-xr-x 5 user user 4096 Jan 15 10:24 .", "drwxr-xr-x 3 user user 4096 Jan 10 08:00 ..", "-rw-r--r-- 1 user user  220 Jan 15 10:24 .bashrc", "-rw-r--r-- 1 user user  220 Jan 15 10:24 readme.txt"],
+          "success": { "icon": "🔗", "title": "Объединено!", "message": "Флаги объединяются через одну строку.", "continueText": "К ls -lh →" }
+        },
+        {
+          "id": "term-ls-lh",
+          "type": "terminal",
+          "title": "ls -lh — размер по-человечески",
+          "cmd": "ls -lh",
+          "info": "<p>Флаг <code>-h</code> (human) делает размеры <b>читаемыми</b>: <code>1K</code>, <code>2M</code>, <code>1G</code> вместо байтов. Работает вместе с <code>-l</code>.</p>",
+          "task": "Покажите подробный список с размерами в K/M/G.",
+          "hint": "ls -lh — маленькая буква h.",
+          "expect": { "oneOf": ["ls -lh", "ls -hl"] },
+          "output": ["-rw-r--r-- 1 user user  220B Jan 15 10:24 readme.txt", "-rw-r--r-- 1 user user  1.2M Jan 14 18:02 video.mp4", "drwxr-xr-x 2 user user  4.0K Jan 14 09:10 Documents/"],
+          "success": { "icon": "📏", "title": "Читаемые размеры", "message": "h = human, для людей.", "continueText": "К pwd →" }
+        },
+        {
+          "id": "term-pwd",
+          "type": "terminal",
+          "title": "pwd — где я нахожусь?",
+          "cmd": "pwd",
+          "info": "<p>Команда <code>pwd</code> (print working directory) показывает <b>полный путь</b> к текущей папке. Полезно, когда «потерялся» в файловой системе.</p>",
+          "task": "Узнайте полный путь к текущей папке.",
+          "hint": "Три буквы: pwd.",
+          "expect": { "exact": "pwd" },
+          "output": "/home/user/quest",
+          "success": { "icon": "📍", "title": "Путь найден", "message": "Ты в /home/user/quest.", "continueText": "К cd →" }
+        },
+        {
+          "id": "term-cd-1",
+          "type": "terminal",
+          "title": "cd — переход в папку",
+          "cmd": "cd",
+          "info": "<p><code>cd</code> (change directory) — переход в другую папку.</p><p>Синтаксис: <code>cd имя_папки</code>. Если команда сработала — она ничего не выводит.</p>",
+          "task": "Перейдите в папку <b>Documents</b>.",
+          "hint": "cd Documents — пробел и имя папки.",
+          "expect": { "regex": "^cd\\s+Documents$" },
+          "output": "user@quest:~/quest/Documents$",
+          "success": { "icon": "🚪", "title": "Ты внутри Documents", "message": "cd молчит при успехе — это норма.", "continueText": "К cd .. →" }
+        },
+        {
+          "id": "term-cd-dotdot",
+          "type": "terminal",
+          "title": "cd .. — на уровень выше",
+          "cmd": "cd ..",
+          "info": "<p><code>..</code> — это «родительская папка» (на уровень выше). Так же <code>.</code> — текущая папка.</p><p><b>Важно:</b> между <code>cd</code> и <code>..</code> нужен пробел.</p>",
+          "task": "Поднимитесь на уровень выше.",
+          "hint": "cd .. — пробел и две точки.",
+          "expect": { "regex": "^cd\\s+\\.\\.$" },
+          "output": "user@quest:~/quest$",
+          "success": { "icon": "⬆️", "title": "Выше!", "message": ".. всегда ведёт к родительской папке.", "continueText": "К mkdir →" }
+        },
+        {
+          "id": "term-mkdir-1",
+          "type": "terminal",
+          "title": "mkdir — создать папку",
+          "cmd": "mkdir",
+          "info": "<p><code>mkdir</code> (make directory) — создаёт новую папку. Синтаксис: <code>mkdir имя_папки</code>.</p>",
+          "task": "Создайте папку <b>projects</b>.",
+          "hint": "mkdir projects",
+          "expect": { "regex": "^mkdir\\s+projects$" },
+          "output": "✓ Папка projects создана",
+          "success": { "icon": "📁", "title": "Готово!", "message": "Папка появилась.", "continueText": "К touch →" }
+        },
+        {
+          "id": "term-touch-1",
+          "type": "terminal",
+          "title": "touch — создать файл",
+          "cmd": "touch",
+          "info": "<p><code>touch</code> создаёт <b>пустой</b> файл с указанным именем. Если файл уже есть — обновляет время его изменения.</p>",
+          "task": "Создайте файл <b>notes.txt</b>.",
+          "hint": "touch notes.txt",
+          "expect": { "regex": "^touch\\s+notes\\.txt$" },
+          "output": "✓ notes.txt создан (0 байт)",
+          "success": { "icon": "📄", "title": "Файл готов", "message": "Теперь у тебя есть файл.", "continueText": "К echo →" }
+        },
+        {
+          "id": "term-echo-1",
+          "type": "terminal",
+          "title": "echo — вывод текста",
+          "cmd": "echo",
+          "info": "<p><code>echo</code> повторяет переданный текст на экран. Простейший способ что-то напечатать из терминала.</p>",
+          "task": "Выведите слово <b>Hello</b>.",
+          "hint": "echo Hello",
+          "expect": { "regex": "^echo\\s+Hello$" },
+          "output": "Hello",
+          "success": { "icon": "🔊", "title": "Эхо!", "message": "echo вернул твой текст.", "continueText": "К echo > →" }
+        },
+        {
+          "id": "term-echo-redir",
+          "type": "terminal",
+          "title": "echo > — запись в файл",
+          "cmd": "echo >",
+          "info": "<p>Оператор <code>&gt;</code> перенаправляет вывод <b>в файл</b>. <code>echo \"Hi\" &gt; file.txt</code> — создаст файл (или перезапишет).</p><p><b>Важно:</b> если файл существовал, старое содержимое пропадёт.</p>",
+          "task": "Запишите слово <b>Hello</b> в файл <b>greet.txt</b>.",
+          "hint": "echo Hello > greet.txt",
+          "expect": { "regex": "^echo\\s+[\"']?Hello[\"']?\\s*>\\s*greet\\.txt$" },
+          "output": "✓ Записано в greet.txt",
+          "success": { "icon": "📝", "title": "Записано!", "message": "> создаёт или перезаписывает файл.", "continueText": "К cat →" }
+        },
+        {
+          "id": "term-cat-1",
+          "type": "terminal",
+          "title": "cat — показать содержимое",
+          "cmd": "cat",
+          "info": "<p><code>cat</code> (concatenate) — показывает содержимое файла прямо в терминале. Хорошо работает для небольших текстовых файлов.</p>",
+          "task": "Покажите содержимое файла <b>readme.txt</b>.",
+          "hint": "cat readme.txt",
+          "expect": { "regex": "^cat\\s+readme\\.txt$" },
+          "output": ["Welcome to Terminal Quest!", "Удачи в приключении."],
+          "success": { "icon": "📖", "title": "Прочитано!", "message": "cat вывел содержимое файла.", "continueText": "К cp →" }
+        },
+        {
+          "id": "term-cp-1",
+          "type": "terminal",
+          "title": "cp — копировать файл",
+          "cmd": "cp",
+          "info": "<p><code>cp</code> (copy) копирует файл: <code>cp откуда куда</code>.</p>",
+          "task": "Скопируйте <b>readme.txt</b> в <b>readme.bak</b>.",
+          "hint": "cp readme.txt readme.bak",
+          "expect": { "regex": "^cp\\s+readme\\.txt\\s+readme\\.bak$" },
+          "output": "✓ Скопировано: readme.txt → readme.bak",
+          "success": { "icon": "📑", "title": "Копия!", "message": "Оригинал остался на месте.", "continueText": "К mv →" }
+        },
+        {
+          "id": "term-mv",
+          "type": "terminal",
+          "title": "mv — переместить или переименовать",
+          "cmd": "mv",
+          "info": "<p><code>mv</code> (move) перемещает файл или переименовывает его. Синтаксис: <code>mv откуда куда</code>. Если папка одна и та же — это переименование.</p>",
+          "task": "Переименуйте файл <b>notes.txt</b> в <b>todo.txt</b>.",
+          "hint": "mv notes.txt todo.txt",
+          "expect": { "regex": "^mv\\s+notes\\.txt\\s+todo\\.txt$" },
+          "output": "✓ notes.txt → todo.txt",
+          "success": { "icon": "✏️", "title": "Переименовано!", "message": "mv умеет и переносить, и переименовывать.", "continueText": "К rm →" }
+        },
+        {
+          "id": "term-rm-1",
+          "type": "terminal",
+          "title": "rm — удалить файл",
+          "cmd": "rm",
+          "info": "<p><code>rm</code> (remove) удаляет файлы.</p><p><b>Осторожно:</b> в терминале нет корзины — вернуть не получится.</p>",
+          "task": "Удалите файл <b>todo.txt</b>.",
+          "hint": "rm todo.txt",
+          "expect": { "regex": "^rm\\s+todo\\.txt$" },
+          "output": "✓ todo.txt удалён",
+          "success": { "icon": "🗑️", "title": "Удалено!", "message": "Без корзины — навсегда.", "continueText": "К grep →" }
+        },
+        {
+          "id": "term-grep",
+          "type": "terminal",
+          "title": "grep — поиск по тексту",
+          "cmd": "grep",
+          "info": "<p><code>grep</code> ищет строки, содержащие указанный текст. Синтаксис: <code>grep \"шаблон\" файл</code>.</p>",
+          "task": "Найдите в <b>log.txt</b> строки со словом <b>error</b>.",
+          "hint": "grep \"error\" log.txt",
+          "expect": { "regex": "^grep\\s+[\"']?error[\"']?\\s+log\\.txt$" },
+          "output": ["2024-01-01 08:15:00 error: disk full", "2024-01-01 08:20:10 error: retry"],
+          "success": { "icon": "🔍", "title": "Нашёл!", "message": "grep — фильтр строк.", "continueText": "К man →" }
+        },
+        {
+          "id": "term-man",
+          "type": "terminal",
+          "title": "man — справка",
+          "cmd": "man",
+          "info": "<p><code>man</code> (manual) — открывает <b>инструкцию</b> по команде. Например: <code>man ls</code> — все флаги команды ls.</p>",
+          "task": "Откройте справку по команде <b>ls</b>.",
+          "hint": "man ls",
+          "expect": { "regex": "^man\\s+ls$" },
+          "output": ["LS(1)                    User Commands                   LS(1)", "NAME", "       ls - list directory contents"],
+          "success": { "icon": "📖", "title": "Справка открыта!", "message": "man — твой лучший друг в терминале.", "continueText": "К ping →" }
+        },
+        {
+          "id": "term-ping",
+          "type": "terminal",
+          "title": "ping — жив ли узел?",
+          "cmd": "ping",
+          "info": "<p>Добро пожаловать в <b>сетевую часть</b>! 🛰️</p><p><code>ping</code> отправляет маленькие пакеты удалённому серверу и ждёт ответа. Пришёл ответ — узел жив и доступен.</p><p>Остановить — <code>Ctrl+C</code>.</p>",
+          "task": "Проверьте связь с сервером <b>example.com</b>.",
+          "hint": "ping example.com",
+          "expect": { "regex": "^ping\\s+example\\.com$" },
+          "output": ["PING example.com (93.184.216.34): 56 data bytes", "64 bytes from 93.184.216.34: icmp_seq=0 ttl=56 time=12.4 ms", "64 bytes from 93.184.216.34: icmp_seq=1 ttl=56 time=11.8 ms", "2 packets transmitted, 2 received, 0% packet loss"],
+          "success": { "icon": "📡", "title": "Связь есть!", "message": "ping — первое, что проверяют при сетевых проблемах.", "continueText": "К ip a →" }
+        },
+        {
+          "id": "term-ip-a",
+          "type": "terminal",
+          "title": "ip a — сетевые интерфейсы",
+          "cmd": "ip a",
+          "info": "<p><code>ip a</code> (address) показывает <b>все сетевые интерфейсы</b> и их IP-адреса.</p><p>Ты увидишь <code>lo</code> (loopback, 127.0.0.1) и <code>eth0</code> или <code>wlan0</code> — реальную сетевую карту.</p>",
+          "task": "Покажите все сетевые интерфейсы и их адреса.",
+          "hint": "ip a — команда из двух частей.",
+          "expect": { "oneOf": ["ip a", "ip addr", "ip address"] },
+          "output": ["1: lo: <LOOPBACK,UP> mtu 65536", "    inet 127.0.0.1/8 scope host lo", "2: eth0: <BROADCAST,MULTICAST,UP> mtu 1500", "    inet 192.168.1.42/24 brd 192.168.1.255 scope global eth0"],
+          "success": { "icon": "🌐", "title": "Твоя сеть!", "message": "eth0 — физическая сетевая карта. Её IP — 192.168.1.42.", "continueText": "К curl →" }
+        },
+        {
+          "id": "term-curl",
+          "type": "terminal",
+          "title": "curl — забрать страницу",
+          "cmd": "curl",
+          "info": "<p><code>curl</code> — швейцарский нож для HTTP. Отправляет запросы и печатает ответ в терминал.</p>",
+          "task": "Заберите главную страницу <b>example.com</b>.",
+          "hint": "curl example.com",
+          "expect": { "regex": "^curl\\s+example\\.com$" },
+          "output": ["<!doctype html>", "<html><head><title>Example Domain</title></html>"],
+          "success": { "icon": "📥", "title": "HTML получен!", "message": "curl печатает тело ответа прямо в терминал.", "continueText": "К nmap →" }
+        },
+        {
+          "id": "term-nmap-basic",
+          "type": "terminal",
+          "title": "nmap — сканирование портов",
+          "cmd": "nmap",
+          "info": "<p><code>nmap</code> (network mapper) — <b>главный инструмент</b> пентеста. Сканирует порты и говорит, какие <b>открыты</b>.</p><p><b>Важно (этично!):</b> сканировать можно только <b>свои</b> серверы или те, на которые есть письменное разрешение.</p>",
+          "task": "Просканируйте свой сервер <b>scanme.nmap.org</b> (легально разрешённый для тестов).",
+          "hint": "nmap scanme.nmap.org",
+          "expect": { "regex": "^nmap\\s+scanme\\.nmap\\.org$" },
+          "output": ["Starting Nmap 7.94", "Nmap scan report for scanme.nmap.org (45.33.32.156)", "PORT      STATE    SERVICE", "22/tcp    open     ssh", "80/tcp    open     http", "Nmap done: 1 IP address (1 host up) scanned"],
+          "success": { "icon": "🛰️", "title": "Разведка завершена!", "message": "Открытые порты — это «двери» на сервер. Закрывай всё, что не нужно.", "continueText": "К финалу →" }
+        },
+        {
+          "id": "term-net-quiz",
+          "type": "quiz",
+          "title": "Проверка: сеть",
+          "info": "<p>Небольшая проверка по сетевой части.</p>",
+          "task": "Выбери правильный вариант.",
+          "question": "Какая команда покажет <b>IP-адрес</b> домена?",
+          "options": ["whoami example.com", "nslookup example.com", "cat example.com", "ping -a example.com"],
+          "correct": 1,
+          "hint": "Команда «name server lookup».",
+          "success": { "icon": "🌐", "title": "Верно!", "message": "nslookup (или dig) — так узнают IP по домену.", "continueText": "Дальше →" }
+        },
+        {
+          "id": "term-sec-quiz",
+          "type": "quiz",
+          "title": "Проверка: этичный хакинг",
+          "info": "<p>Проверим главное правило безопасности.</p>",
+          "task": "Выбери правильный вариант.",
+          "question": "Когда можно сканировать <b>чужой</b> сервер командой nmap?",
+          "options": ["Всегда — это же просто проверка", "Только ночью", "Только с письменного разрешения владельца", "Если сервер открыт из интернета"],
+          "correct": 2,
+          "hint": "Разрешение — ключевое слово в этичном хакинге.",
+          "success": { "icon": "🏆", "title": "Курс пройден!", "message": "Ты прошёл путь от ls до этичного хакинга.", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "js",
+      "title": "JavaScript",
+      "icon": "JS",
+      "labels": { "code": "main.js", "success": "Готово", "badge": "✓ Код работает" },
+      "lessons": [
+        {
+          "id": "js-log",
+          "type": "code",
+          "title": "console.log",
+          "lang": "js",
+          "info": "<p><code>console.log()</code> выводит сообщение в консоль. Это первая функция, с которой начинают все.</p>",
+          "task": "Напишите код, который выведет в консоль слово <b>Hello</b>.",
+          "hint": "console.log(\"Hello\");",
+          "starter": "// введи код здесь\n",
+          "run": true,
+          "expect": { "regex": "console\\.log\\s*\\(\\s*['\"`]Hello['\"`]\\s*\\)" },
+          "success": { "icon": "💚", "title": "Работает!", "message": "Ты вывел Hello в консоль.", "continueText": "Дальше →" }
+        },
+        {
+          "id": "js-vars",
+          "type": "code",
+          "title": "Переменные",
+          "lang": "js",
+          "info": "<p>Переменная создаётся словом <code>let</code> или <code>const</code>. Например: <code>let x = 5;</code></p>",
+          "task": "Создайте переменную <b>n</b> со значением <b>42</b> и выведите её через <code>console.log(n)</code>.",
+          "hint": "let n = 42; console.log(n);",
+          "starter": "// создай переменную n и выведи её\n",
+          "run": true,
+          "expect": { "regex": "let\\s+n\\s*=\\s*42|const\\s+n\\s*=\\s*42" },
+          "success": { "icon": "📦", "title": "Верно!", "message": "Переменная n = 42 создана.", "continueText": "К викторине →" }
+        },
+        {
+          "id": "js-quiz1",
+          "type": "quiz",
+          "title": "Проверка JS",
+          "info": "<p>Проверка основ.</p>",
+          "task": "Выбери правильный вариант.",
+          "question": "Как объявить переменную в современном JS?",
+          "options": ["var x = 1", "let x = 1", "make x = 1", "x := 1"],
+          "correct": 1,
+          "hint": "Ключевое слово из трёх букв.",
+          "success": { "icon": "🎯", "title": "Верно!", "message": "let — современный способ.", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "python",
+      "title": "Python",
+      "icon": "Py",
+      "labels": { "code": "main.py", "badge": "✓ Код принят" },
+      "lessons": [
+        {
+          "id": "py-print",
+          "type": "code",
+          "title": "print()",
+          "lang": "py",
+          "info": "<p>В Python вывод делается функцией <code>print()</code>.</p>",
+          "task": "Напишите <b>print(\"Hello\")</b>.",
+          "hint": "print(\"Hello\")",
+          "starter": "# введи код здесь\n",
+          "run": false,
+          "output": "Hello",
+          "expect": { "regex": "print\\s*\\(\\s*['\"`]Hello['\"`]\\s*\\)" },
+          "success": { "icon": "🐍", "title": "Python работает!", "message": "print — первый шаг.", "continueText": "Дальше →" }
+        },
+        {
+          "id": "py-quiz1",
+          "type": "quiz",
+          "title": "Проверка Python",
+          "info": "<p>Проверка основ.</p>",
+          "task": "Выбери правильный вариант.",
+          "question": "Как вывести текст в Python?",
+          "options": ["echo(\"text\")", "console.log(\"text\")", "print(\"text\")", "output \"text\""],
+          "correct": 2,
+          "hint": "Одна короткая функция.",
+          "success": { "icon": "🎉", "title": "Верно!", "message": "print!", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "math",
+      "title": "Математика",
+      "icon": "∑",
+      "lessons": [
+        {
+          "id": "math-sum",
+          "type": "quiz",
+          "title": "Сложение",
+          "info": "<p>Разминка.</p>",
+          "task": "Выбери правильный ответ.",
+          "question": "Сколько будет <b>7 + 8</b>?",
+          "options": ["13", "14", "15", "16"],
+          "correct": 2,
+          "hint": "7+7=14, плюс ещё один.",
+          "success": { "icon": "🔢", "title": "Верно!", "message": "15!", "continueText": "Дальше →" }
+        },
+        {
+          "id": "math-mul",
+          "type": "quiz",
+          "title": "Умножение",
+          "info": "<p>Продолжаем.</p>",
+          "task": "Выбери правильный ответ.",
+          "question": "<b>6 × 9</b> = ?",
+          "options": ["42", "48", "54", "63"],
+          "correct": 2,
+          "hint": "6 × 10 = 60, минус 6.",
+          "success": { "icon": "✖️", "title": "Отлично!", "message": "54!", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "russian",
+      "title": "Русский язык",
+      "icon": "Я",
+      "lessons": [
+        {
+          "id": "ru-parts",
+          "type": "quiz",
+          "title": "Части речи",
+          "info": "<p>Проверка грамматики.</p>",
+          "task": "Выбери правильный ответ.",
+          "question": "Какая часть речи слово «быстро»?",
+          "options": ["Существительное", "Прилагательное", "Наречие", "Глагол"],
+          "correct": 2,
+          "hint": "Отвечает на вопрос «как?»",
+          "success": { "icon": "📝", "title": "Верно!", "message": "Наречие.", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "java",
+      "title": "Java",
+      "icon": "JV",
+      "lessons": [
+        {
+          "id": "java-1",
+          "type": "quiz",
+          "title": "Курс Java",
+          "info": "<p>Тут мог бы быть курс Java, но никто не написал на почту и особенно не поддержал по ссылке в боковой панели! 😞</p>",
+          "task": "Выбери правильный ответ.",
+          "question": "Когда появится курс Java?",
+          "options": ["Скоро", "Если людям будет интересно", "Не скоро", "Однажды"],
+          "correct": 1,
+          "hint": "Похоже кто-то ошибся!",
+          "success": { "icon": "📝", "title": "Верно!", "message": "Осталось немного скинуть на донат, чтобы автору захотелось дарить бесплатные курсы всем! И напиши ему на почту, какой курс нужно добавить.", "continueText": "Завершить ✓" }
+        }
+      ]
+    },
+    {
+      "id": "sql",
+      "title": "SQL",
+      "icon": "Q",
+      "lessons": [
+        {
+          "id": "sql-1",
+          "type": "quiz",
+          "title": "Курс SQL",
+          "info": "<p>Тут мог бы быть курс SQL, но никто не написал на почту и особенно не поддержал по ссылке в боковой панели! 😞</p>",
+          "task": "Выбери правильный ответ.",
+          "question": "Когда появится курс SQL?",
+          "options": ["Скоро", "Если людям будет интересно", "Не скоро", "Однажды"],
+          "correct": 1,
+          "hint": "Похоже кто-то ошибся!",
+          "success": { "icon": "📝", "title": "Верно!", "message": "Поддержи проект — и курсы появятся быстрее.", "continueText": "Завершить ✓" }
+        }
+      ]
+    }
+  ]
+}
